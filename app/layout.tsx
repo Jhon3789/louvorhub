@@ -22,6 +22,10 @@ export default function RootLayout({
 
         {children}
 
+
+        <script src="/register-sw.js" />
+
+
       </body>
 
     </html>
