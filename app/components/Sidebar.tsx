@@ -1,175 +1,57 @@
-"use client";
-
 import Link from "next/link";
 
-
-export default function Sidebar(){
-
-
-  const links=[
-
-    {
-      nome:"Início",
-      icone:"🏠",
-      rota:"/sistema"
-    },
-
-    {
-      nome:"Louvores",
-      icone:"🎵",
-      rota:"/sistema/louvores"
-    },
-
-    {
-      nome:"Cultos",
-      icone:"📅",
-      rota:"/sistema/cultos"
-    },
-
-    {
-      nome:"Escala",
-      icone:"👥",
-      rota:"/sistema/escala"
-    },
-
-    {
-      nome:"Sugestões",
-      icone:"💡",
-      rota:"/sistema/sugestoes"
-    },
-
-    {
-      nome:"Avisos",
-      icone:"📢",
-      rota:"/sistema/avisos"
-    }
-
-  ];
-
-
-
-
-
+export default function Sidebar() {
   return (
+    <aside className="w-64 min-h-screen bg-zinc-900 text-white p-6">
+      <h1 className="text-2xl font-bold mb-8">
+        LouvorHub 🎵
+      </h1>
 
-    <aside
+      <nav className="flex flex-col gap-4">
 
-      className="
-      hidden md:flex
-      w-72
-      min-h-screen
-      flex-col
-      bg-gradient-to-b
-      from-blue-900
-      to-zinc-950
-      p-6
-      text-white
-      "
+        <Link
+          href="/sistema"
+          className="hover:text-blue-400"
+        >
+          🏠 Início
+        </Link>
 
-    >
+        <Link
+          href="/sistema/louvores"
+          className="hover:text-blue-400"
+        >
+          🎶 Louvores
+        </Link>
 
+        <Link
+          href="/sistema/cultos"
+          className="hover:text-blue-400"
+        >
+          ⛪ Cultos
+        </Link>
 
+        <Link
+          href="/sistema/escala"
+          className="hover:text-blue-400"
+        >
+          👥 Escala
+        </Link>
 
+        <Link
+          href="/sistema/sugestoes"
+          className="hover:text-blue-400"
+        >
+          💡 Sugestões
+        </Link>
 
-      <div className="mb-10">
-
-
-        <h1 className="text-3xl font-bold">
-
-          ✝️ Quadrangular
-
-        </h1>
-
-
-        <p className="mt-2 text-blue-200">
-
-          Ministério de Louvor
-
-        </p>
-
-
-      </div>
-
-
-
-
-
-
-
-      <nav className="space-y-3">
-
-
-        {links.map((link)=>(
-
-
-          <Link
-
-            key={link.rota}
-
-            href={link.rota}
-
-            className="
-            flex
-            items-center
-            gap-3
-            rounded-xl
-            bg-white/10
-            p-3
-            transition
-            hover:bg-white/20
-            hover:translate-x-1
-            "
-
-          >
-
-
-            <span className="text-xl">
-
-              {link.icone}
-
-            </span>
-
-
-            <span>
-
-              {link.nome}
-
-            </span>
-
-
-          </Link>
-
-
-        ))}
-
-
+        <Link
+          href="/login"
+          className="hover:text-red-400 mt-8"
+        >
+          🚪 Sair
+        </Link>
 
       </nav>
-
-
-
-
-
-      <div className="mt-auto text-sm text-blue-200">
-
-
-        Sistema do Ministério
-
-
-        <br />
-
-
-        LouvorHub
-
-
-      </div>
-
-
-
     </aside>
-
-
   );
-
-
 }
