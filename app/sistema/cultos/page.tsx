@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+ 
 type Louvor = {
   id: number;
   nome: string;
   artista: string;
   tom: string;
+  link?: string;
 };
 
 type Culto = {
@@ -25,6 +26,7 @@ export default function CultosPage() {
   const [tipo, setTipo] = useState("");
   const [dia, setDia] = useState("");
   const [horario, setHorario] = useState("");
+
 
 
   useEffect(() => {
@@ -99,7 +101,6 @@ export default function CultosPage() {
 
 
 
-
   function adicionarLouvor(
     cultoId:number,
     louvor:Louvor
@@ -119,18 +120,14 @@ export default function CultosPage() {
 
 
         return {
-
           ...culto,
-
           repertorio:[
             ...culto.repertorio,
             louvor
           ]
-
         };
 
       }
-
 
       return culto;
 
@@ -154,18 +151,14 @@ export default function CultosPage() {
       if(culto.id === cultoId){
 
         return {
-
           ...culto,
-
           repertorio:
           culto.repertorio.filter(
             (l)=>l.id !== louvorId
           )
-
         };
 
       }
-
 
       return culto;
 
@@ -175,7 +168,6 @@ export default function CultosPage() {
     salvar(lista);
 
   }
-
 
 
 
@@ -195,8 +187,7 @@ export default function CultosPage() {
         ];
 
 
-        const novoIndex =
-          index + direcao;
+        const novoIndex = index + direcao;
 
 
         if(
@@ -207,17 +198,13 @@ export default function CultosPage() {
         }
 
 
-        const temp =
-          repertorio[index];
-
-
-        repertorio[index] =
-          repertorio[novoIndex];
-
-
-        repertorio[novoIndex] =
-          temp;
-
+        [
+          repertorio[index],
+          repertorio[novoIndex]
+        ] = [
+          repertorio[novoIndex],
+          repertorio[index]
+        ];
 
 
         return {
@@ -240,10 +227,10 @@ export default function CultosPage() {
 
 
 
+
   return (
 
     <div className="p-6 text-white">
-
 
       <h1 className="text-3xl font-bold mb-6">
         ⛪ Cultos
@@ -291,7 +278,6 @@ export default function CultosPage() {
 
 
 
-
       {cultos.map((culto)=>(
 
         <div
@@ -310,10 +296,10 @@ export default function CultosPage() {
 
 
 
-
           <h3 className="font-bold mt-5">
             🎵 Repertório
           </h3>
+
 
 
 
@@ -321,30 +307,54 @@ export default function CultosPage() {
 
             <div
               key={l.id}
-              className="bg-zinc-800 p-3 rounded mt-2"
+              className="bg-zinc-800 p-4 rounded mt-3"
             >
 
-              <p>
-                {index+1}. 🎵 {l.nome}
-              </p>
 
-              <p>
-                Tom: {l.tom}
-              </p>
+              <div className="flex justify-between">
+
+                <div>
+
+                  <p className="font-bold text-lg">
+                    {index+1}. 🎵 {l.nome}
+                  </p>
+
+
+                  <p>
+                    🎤 {l.artista}
+                  </p>
+
+
+                  <p>
+                    🎸 Tom: {l.tom}
+                  </p>
+
+                </div>
 
 
 
-              <div className="flex gap-2 mt-3">
+                {l.link && (
+
+                  <a
+                    href={l.link}
+                    target="_blank"
+                    className="bg-red-600 px-3 py-2 rounded h-fit"
+                  >
+                    ▶ Ouvir
+                  </a>
+
+                )}
+
+              </div>
+
+
+
+
+              <div className="flex gap-2 mt-4">
 
 
                 <button
-                  onClick={()=>
-                    moverLouvor(
-                      culto.id,
-                      index,
-                      -1
-                    )
-                  }
+                  onClick={()=>moverLouvor(culto.id,index,-1)}
                   className="bg-blue-600 px-3 py-1 rounded"
                 >
                   ⬆️
@@ -352,13 +362,7 @@ export default function CultosPage() {
 
 
                 <button
-                  onClick={()=>
-                    moverLouvor(
-                      culto.id,
-                      index,
-                      1
-                    )
-                  }
+                  onClick={()=>moverLouvor(culto.id,index,1)}
                   className="bg-green-600 px-3 py-1 rounded"
                 >
                   ⬇️
@@ -366,12 +370,7 @@ export default function CultosPage() {
 
 
                 <button
-                  onClick={()=>
-                    removerLouvor(
-                      culto.id,
-                      l.id
-                    )
-                  }
+                  onClick={()=>removerLouvor(culto.id,l.id)}
                   className="bg-red-600 px-3 py-1 rounded"
                 >
                   ❌
@@ -388,22 +387,17 @@ export default function CultosPage() {
 
 
 
-
           <h3 className="font-bold mt-6">
             Adicionar louvor
           </h3>
+
 
 
           {louvores.map((l)=>(
 
             <button
               key={l.id}
-              onClick={()=>
-                adicionarLouvor(
-                  culto.id,
-                  l
-                )
-              }
+              onClick={()=>adicionarLouvor(culto.id,l)}
               className="block w-full text-left bg-zinc-800 p-3 rounded mt-2"
             >
 
@@ -412,7 +406,6 @@ export default function CultosPage() {
             </button>
 
           ))}
-
 
 
         </div>
