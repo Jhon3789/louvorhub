@@ -40,7 +40,6 @@ export default function LouvoresPage() {
 
     if (!nome) return;
 
-
     const novo: Louvor = {
 
       id: Date.now(),
@@ -55,7 +54,6 @@ export default function LouvoresPage() {
 
 
     const lista = [...louvores, novo];
-
 
     setLouvores(lista);
 
@@ -158,13 +156,14 @@ export default function LouvoresPage() {
 
         <button
           onClick={adicionarLouvor}
-          className="bg-blue-600 px-5 py-3 rounded-lg"
+          className="bg-blue-600 hover:bg-blue-700 px-5 py-3 rounded-lg"
         >
           Adicionar Louvor
         </button>
 
 
       </div>
+
 
 
 
@@ -180,6 +179,7 @@ export default function LouvoresPage() {
             className="bg-zinc-900 p-5 rounded-xl"
           >
 
+
             <h2 className="text-2xl font-bold">
               {louvor.nome}
             </h2>
@@ -189,15 +189,17 @@ export default function LouvoresPage() {
               🎤 {louvor.artista}
             </p>
 
+
             <p>
               🎸 Tom: {louvor.tom}
             </p>
 
 
+
             <details className="mt-3">
 
               <summary className="cursor-pointer">
-                Ver letra e cifra
+                📖 Ver letra e cifra
               </summary>
 
 
@@ -215,25 +217,30 @@ export default function LouvoresPage() {
 
 
 
+
+
             {louvor.link && (
 
               <a
                 href={louvor.link}
                 target="_blank"
-                className="text-blue-400 block mt-3"
+                className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg mt-4 font-semibold"
               >
-                ▶ Ouvir louvor
+                ▶ Ouvir Louvor
               </a>
 
             )}
 
 
 
+
+
+
             <button
               onClick={()=>removerLouvor(louvor.id)}
-              className="text-red-500 mt-4"
+              className="text-red-500 mt-4 block"
             >
-              Excluir
+              🗑 Excluir
             </button>
 
 
