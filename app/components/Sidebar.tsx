@@ -16,12 +16,14 @@ export default function Sidebar() {
           🏠 Início
         </Link>
 
+
         <Link
           href="/sistema/louvores"
           className="hover:text-blue-400"
         >
           🎶 Louvores
         </Link>
+
 
         <Link
           href="/sistema/cultos"
@@ -30,6 +32,7 @@ export default function Sidebar() {
           ⛪ Cultos
         </Link>
 
+
         <Link
           href="/sistema/escala"
           className="hover:text-blue-400"
@@ -37,12 +40,22 @@ export default function Sidebar() {
           👥 Escala
         </Link>
 
+
+        <Link
+          href="/sistema/equipe"
+          className="hover:text-blue-400"
+        >
+          👤 Equipe
+        </Link>
+
+
         <Link
           href="/sistema/sugestoes"
           className="hover:text-blue-400"
         >
           💡 Sugestões
         </Link>
+
 
         <Link
           href="/login"
