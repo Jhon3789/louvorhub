@@ -14,11 +14,9 @@ export default function AuthGuard({
 
   useEffect(() => {
     async function verificar() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { data } = await supabase.auth.getSession();
 
-      if (!session) {
+      if (!data.session) {
         router.replace("/login");
       } else {
         setCarregando(false);
