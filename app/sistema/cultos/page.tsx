@@ -1,420 +1,468 @@
 "use client";
 
 import { useEffect, useState } from "react";
- 
+import { supabase } from "../../../lib/supabase";
+
+
 type Louvor = {
-  id: number;
-  nome: string;
-  artista: string;
-  tom: string;
-  link?: string;
+  id:number;
+  nome:string;
+  artista:string;
+  tom:string;
+  link?:string;
 };
+
 
 type Culto = {
-  id: number;
-  tipo: string;
-  dia: string;
-  horario: string;
-  repertorio: Louvor[];
+  id:number;
+  nome:string;
+  data:string;
+  horario:string;
+  status:string;
+  repertorio:Louvor[];
 };
 
-export default function CultosPage() {
 
-  const [cultos, setCultos] = useState<Culto[]>([]);
-  const [louvores, setLouvores] = useState<Louvor[]>([]);
 
-  const [tipo, setTipo] = useState("");
-  const [dia, setDia] = useState("");
-  const [horario, setHorario] = useState("");
+export default function CultosPage(){
 
 
+const [cultos,setCultos] = useState<Culto[]>([]);
+const [louvores,setLouvores] = useState<Louvor[]>([]);
 
-  useEffect(() => {
 
-    const cultosSalvos = localStorage.getItem("cultos");
-    const louvoresSalvos = localStorage.getItem("louvores");
+const [nome,setNome] = useState("");
+const [data,setData] = useState("");
+const [horario,setHorario] = useState("");
 
 
-    if (cultosSalvos) {
 
-      const dados = JSON.parse(cultosSalvos);
 
-      const corrigidos = dados.map((culto:any)=>({
-        ...culto,
-        repertorio: culto.repertorio || []
-      }));
 
-      setCultos(corrigidos);
+useEffect(()=>{
 
-    }
+  carregarLouvores();
+  carregarCultos();
 
+},[]);
 
-    if (louvoresSalvos) {
-      setLouvores(JSON.parse(louvoresSalvos));
-    }
 
 
-  }, []);
 
 
 
-  function salvar(lista:Culto[]) {
 
-    setCultos(lista);
+async function carregarLouvores(){
 
-    localStorage.setItem(
-      "cultos",
-      JSON.stringify(lista)
-    );
 
-  }
+const {data,error}=await supabase
+.from("louvores")
+.select("*")
+.order("id");
 
 
+if(error){
 
-  function criarCulto(){
+ console.log(error);
+ return;
 
-    if(!tipo || !dia || !horario) return;
+}
 
 
-    const novo:Culto = {
+setLouvores(data || []);
 
-      id: Date.now(),
-      tipo,
-      dia,
-      horario,
-      repertorio:[]
 
-    };
+}
 
 
-    salvar([
-      ...cultos,
-      novo
-    ]);
 
 
-    setTipo("");
-    setDia("");
-    setHorario("");
 
-  }
 
 
 
-  function adicionarLouvor(
-    cultoId:number,
-    louvor:Louvor
-  ){
+async function carregarCultos(){
 
-    const lista = cultos.map((culto)=>{
 
-      if(culto.id === cultoId){
+const {data,error}=await supabase
+.from("cultos")
+.select("*")
+.order("id");
 
-        const existe =
-          culto.repertorio.some(
-            (l)=>l.id === louvor.id
-          );
 
 
-        if(existe) return culto;
+if(error){
 
+ console.log(error);
+ return;
 
-        return {
-          ...culto,
-          repertorio:[
-            ...culto.repertorio,
-            louvor
-          ]
-        };
+}
 
-      }
 
-      return culto;
 
-    });
+const lista = await Promise.all(
 
+(data || []).map(async(culto)=>{
 
-    salvar(lista);
 
-  }
+const {data: repertorio}=await supabase
+.from("culto_louvores")
+.select("louvores(*)")
+.eq("culto_id",culto.id);
 
 
 
+return {
 
-  function removerLouvor(
-    cultoId:number,
-    louvorId:number
-  ){
+ ...culto,
 
-    const lista = cultos.map((culto)=>{
+ repertorio:
+ repertorio?.map((item:any)=>item.louvores) || []
 
-      if(culto.id === cultoId){
+};
 
-        return {
-          ...culto,
-          repertorio:
-          culto.repertorio.filter(
-            (l)=>l.id !== louvorId
-          )
-        };
 
-      }
+})
 
-      return culto;
+);
 
-    });
 
 
-    salvar(lista);
+setCultos(lista);
 
-  }
 
+}
 
 
 
-  function moverLouvor(
-    cultoId:number,
-    index:number,
-    direcao:number
-  ){
 
-    const lista = cultos.map((culto)=>{
 
-      if(culto.id === cultoId){
 
-        const repertorio = [
-          ...culto.repertorio
-        ];
 
 
-        const novoIndex = index + direcao;
 
+async function criarCulto(){
 
-        if(
-          novoIndex < 0 ||
-          novoIndex >= repertorio.length
-        ){
-          return culto;
-        }
 
+if(!nome || !data || !horario){
 
-        [
-          repertorio[index],
-          repertorio[novoIndex]
-        ] = [
-          repertorio[novoIndex],
-          repertorio[index]
-        ];
+ alert("Preencha todos os campos");
+ return;
 
+}
 
-        return {
-          ...culto,
-          repertorio
-        };
 
-      }
 
+const {data:novo,error}=await supabase
+.from("cultos")
+.insert({
 
-      return culto;
+ nome,
+ data,
+ horario,
+ status:"planejado"
 
-    });
+})
+.select()
+.single();
 
 
-    salvar(lista);
 
-  }
+if(error){
 
+alert(error.message);
+return;
 
+}
 
 
 
-  return (
 
-    <div className="p-6 text-white">
+setCultos([
 
-      <h1 className="text-3xl font-bold mb-6">
-        ⛪ Cultos
-      </h1>
+...cultos,
 
+{
+ ...novo,
+ repertorio:[]
+}
 
+]);
 
-      <div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
 
-        <input
-          className="w-full p-3 mb-3 bg-zinc-800 rounded"
-          placeholder="Nome do culto"
-          value={tipo}
-          onChange={(e)=>setTipo(e.target.value)}
-        />
+setNome("");
+setData("");
+setHorario("");
 
+}
 
-        <input
-          className="w-full p-3 mb-3 bg-zinc-800 rounded"
-          placeholder="Dia"
-          value={dia}
-          onChange={(e)=>setDia(e.target.value)}
-        />
 
 
-        <input
-          className="w-full p-3 mb-3 bg-zinc-800 rounded"
-          placeholder="Horário"
-          value={horario}
-          onChange={(e)=>setHorario(e.target.value)}
-        />
 
 
-        <button
-          onClick={criarCulto}
-          className="bg-blue-600 px-5 py-3 rounded"
-        >
-          Criar Culto
-        </button>
 
 
-      </div>
 
 
+async function adicionarLouvor(
+cultoId:number,
+louvor:Louvor
+){
 
 
-      {cultos.map((culto)=>(
 
-        <div
-          key={culto.id}
-          className="bg-zinc-900 p-5 rounded-xl mb-6"
-        >
+const {error}=await supabase
+.from("culto_louvores")
+.insert({
 
-          <h2 className="text-2xl font-bold">
-            {culto.tipo}
-          </h2>
+ culto_id:cultoId,
+ louvor_id:louvor.id
 
+});
 
-          <p>
-            📅 {culto.dia} - ⏰ {culto.horario}
-          </p>
 
 
+if(error){
 
-          <h3 className="font-bold mt-5">
-            🎵 Repertório
-          </h3>
+alert(error.message);
+return;
 
+}
 
 
 
-          {culto.repertorio.map((l,index)=>(
+carregarCultos();
 
-            <div
-              key={l.id}
-              className="bg-zinc-800 p-4 rounded mt-3"
-            >
 
+}
 
-              <div className="flex justify-between">
 
-                <div>
 
-                  <p className="font-bold text-lg">
-                    {index+1}. 🎵 {l.nome}
-                  </p>
 
 
-                  <p>
-                    🎤 {l.artista}
-                  </p>
 
 
-                  <p>
-                    🎸 Tom: {l.tom}
-                  </p>
 
-                </div>
 
+async function removerLouvor(
+cultoId:number,
+louvorId:number
+){
 
 
-                {l.link && (
 
-                  <a
-                    href={l.link}
-                    target="_blank"
-                    className="bg-red-600 px-3 py-2 rounded h-fit"
-                  >
-                    ▶ Ouvir
-                  </a>
+const {error}=await supabase
+.from("culto_louvores")
+.delete()
+.eq("culto_id",cultoId)
+.eq("louvor_id",louvorId);
 
-                )}
 
-              </div>
 
+if(error){
 
+alert(error.message);
+return;
 
+}
 
-              <div className="flex gap-2 mt-4">
 
 
-                <button
-                  onClick={()=>moverLouvor(culto.id,index,-1)}
-                  className="bg-blue-600 px-3 py-1 rounded"
-                >
-                  ⬆️
-                </button>
+carregarCultos();
 
 
-                <button
-                  onClick={()=>moverLouvor(culto.id,index,1)}
-                  className="bg-green-600 px-3 py-1 rounded"
-                >
-                  ⬇️
-                </button>
+}
 
 
-                <button
-                  onClick={()=>removerLouvor(culto.id,l.id)}
-                  className="bg-red-600 px-3 py-1 rounded"
-                >
-                  ❌
-                </button>
 
 
-              </div>
 
 
-            </div>
 
-          ))}
 
 
+return (
 
+<div className="p-6 text-white">
 
-          <h3 className="font-bold mt-6">
-            Adicionar louvor
-          </h3>
 
+<h1 className="text-3xl font-bold mb-6">
+⛪ Cultos
+</h1>
 
 
-          {louvores.map((l)=>(
 
-            <button
-              key={l.id}
-              onClick={()=>adicionarLouvor(culto.id,l)}
-              className="block w-full text-left bg-zinc-800 p-3 rounded mt-2"
-            >
 
-              🎵 {l.nome}
 
-            </button>
+<div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
-          ))}
 
+<input
+className="w-full p-3 mb-3 bg-zinc-800 rounded"
+placeholder="Nome do culto"
+value={nome}
+onChange={(e)=>setNome(e.target.value)}
+/>
 
-        </div>
 
-      ))}
 
+<input
+className="w-full p-3 mb-3 bg-zinc-800 rounded"
+placeholder="Data"
+value={data}
+onChange={(e)=>setData(e.target.value)}
+/>
 
-    </div>
 
-  );
+
+<input
+className="w-full p-3 mb-3 bg-zinc-800 rounded"
+placeholder="Horário"
+value={horario}
+onChange={(e)=>setHorario(e.target.value)}
+/>
+
+
+
+<button
+onClick={criarCulto}
+className="bg-blue-600 px-5 py-3 rounded"
+>
+Criar Culto
+</button>
+
+
+
+</div>
+
+
+
+
+
+
+
+{cultos.map((culto)=>(
+
+
+<div
+key={culto.id}
+className="bg-zinc-900 p-5 rounded-xl mb-6"
+>
+
+
+<h2 className="text-2xl font-bold">
+{culto.nome}
+</h2>
+
+
+<p>
+📅 {culto.data} - ⏰ {culto.horario}
+</p>
+
+
+<p>
+Status: {culto.status}
+</p>
+
+
+
+
+
+<h3 className="font-bold mt-5">
+🎵 Repertório
+</h3>
+
+
+
+
+{culto.repertorio.map((l)=>(
+
+
+<div
+key={l.id}
+className="bg-zinc-800 p-3 rounded mt-3"
+>
+
+
+<p className="font-bold">
+🎵 {l.nome}
+</p>
+
+
+<p>
+🎤 {l.artista}
+</p>
+
+
+<p>
+🎸 Tom: {l.tom}
+</p>
+
+
+
+
+<button
+onClick={()=>removerLouvor(culto.id,l.id)}
+className="text-red-500 mt-2"
+>
+❌ Remover
+</button>
+
+
+
+</div>
+
+
+))}
+
+
+
+
+
+
+<h3 className="font-bold mt-6">
+Adicionar louvor
+</h3>
+
+
+
+
+{louvores.map((l)=>(
+
+
+<button
+
+key={l.id}
+
+onClick={()=>adicionarLouvor(culto.id,l)}
+
+className="block w-full text-left bg-zinc-800 p-3 rounded mt-2"
+
+>
+
+🎵 {l.nome}
+
+</button>
+
+
+))}
+
+
+
+
+
+</div>
+
+
+))}
+
+
+
+
+</div>
+
+);
+
 
 }

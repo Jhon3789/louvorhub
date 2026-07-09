@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "../../../lib/supabase";
+
 
 type Louvor = {
   id: number;
@@ -12,55 +14,107 @@ type Louvor = {
   link: string;
 };
 
+
+
 export default function LouvoresPage() {
+
 
   const [louvores, setLouvores] = useState<Louvor[]>([]);
 
-  const [nome, setNome] = useState("");
-  const [artista, setArtista] = useState("");
-  const [tom, setTom] = useState("");
-  const [letra, setLetra] = useState("");
-  const [cifra, setCifra] = useState("");
-  const [link, setLink] = useState("");
+  const [nome,setNome] = useState("");
+  const [artista,setArtista] = useState("");
+  const [tom,setTom] = useState("");
+  const [letra,setLetra] = useState("");
+  const [cifra,setCifra] = useState("");
+  const [link,setLink] = useState("");
 
 
-  useEffect(() => {
 
-    const dados = localStorage.getItem("louvores");
 
-    if (dados) {
-      setLouvores(JSON.parse(dados));
+  async function carregar(){
+
+    const {data,error} = await supabase
+      .from("louvores")
+      .select("*")
+      .order("id",{ascending:false});
+
+
+    if(error){
+
+      alert(error.message);
+      return;
+
     }
 
-  }, []);
+
+    setLouvores(data || []);
+
+  }
 
 
 
-  function adicionarLouvor() {
-
-    if (!nome) return;
-
-    const novo: Louvor = {
-
-      id: Date.now(),
-      nome,
-      artista,
-      tom,
-      letra,
-      cifra,
-      link,
-
-    };
 
 
-    const lista = [...louvores, novo];
+  useEffect(()=>{
 
-    setLouvores(lista);
+    carregar();
 
-    localStorage.setItem(
-      "louvores",
-      JSON.stringify(lista)
-    );
+  },[]);
+
+
+
+
+
+
+  async function adicionarLouvor(){
+
+
+    if(!nome){
+
+      alert("Digite o nome do louvor");
+      return;
+
+    }
+
+
+
+    const {data,error} = await supabase
+      .from("louvores")
+      .insert({
+
+        nome:nome,
+        artista:artista,
+        tom:tom,
+        letra:letra,
+        cifra:cifra,
+        link:link
+
+      })
+      .select();
+
+
+
+
+    if(error){
+
+      alert(error.message);
+      console.log(error);
+      return;
+
+    }
+
+
+
+
+    if(data){
+
+      setLouvores([
+        ...louvores,
+        data[0]
+      ]);
+
+    }
+
 
 
     setNome("");
@@ -70,25 +124,47 @@ export default function LouvoresPage() {
     setCifra("");
     setLink("");
 
+
+    alert("Louvor cadastrado!");
+
+  }
+
+
+
+
+
+
+
+  async function excluir(id:number){
+
+
+    const {error} = await supabase
+      .from("louvores")
+      .delete()
+      .eq("id",id);
+
+
+
+    if(error){
+
+      alert(error.message);
+      return;
+
+    }
+
+
+
+    setLouvores(
+      louvores.filter(
+        (l)=>l.id !== id
+      )
+    );
+
   }
 
 
 
-  function removerLouvor(id:number){
 
-    const lista = louvores.filter(
-      (l)=>l.id !== id
-    );
-
-
-    setLouvores(lista);
-
-    localStorage.setItem(
-      "louvores",
-      JSON.stringify(lista)
-    );
-
-  }
 
 
 
@@ -124,7 +200,7 @@ export default function LouvoresPage() {
 
         <input
           className="w-full p-3 bg-zinc-800 rounded"
-          placeholder="Tom (ex: G, C, D)"
+          placeholder="Tom"
           value={tom}
           onChange={(e)=>setTom(e.target.value)}
         />
@@ -148,17 +224,18 @@ export default function LouvoresPage() {
 
         <input
           className="w-full p-3 bg-zinc-800 rounded"
-          placeholder="Link do YouTube"
+          placeholder="Link YouTube"
           value={link}
           onChange={(e)=>setLink(e.target.value)}
         />
 
 
+
         <button
           onClick={adicionarLouvor}
-          className="bg-blue-600 hover:bg-blue-700 px-5 py-3 rounded-lg"
+          className="bg-blue-600 px-6 py-3 rounded-xl"
         >
-          Adicionar Louvor
+          ➕ Adicionar Louvor
         </button>
 
 
@@ -171,45 +248,44 @@ export default function LouvoresPage() {
       <div className="mt-6 space-y-4">
 
 
-        {louvores.map((louvor)=>(
+        {louvores.map((l)=>(
 
 
           <div
-            key={louvor.id}
+            key={l.id}
             className="bg-zinc-900 p-5 rounded-xl"
           >
 
 
             <h2 className="text-2xl font-bold">
-              {louvor.nome}
+              {l.nome}
             </h2>
 
 
             <p>
-              🎤 {louvor.artista}
+              🎤 {l.artista}
             </p>
 
 
             <p>
-              🎸 Tom: {louvor.tom}
+              🎸 Tom: {l.tom}
             </p>
-
 
 
             <details className="mt-3">
 
-              <summary className="cursor-pointer">
-                📖 Ver letra e cifra
+              <summary>
+                📖 Letra e cifra
               </summary>
 
 
-              <p className="mt-3 whitespace-pre-line">
-                {louvor.letra}
+              <p className="whitespace-pre-line mt-3">
+                {l.letra}
               </p>
 
 
-              <p className="mt-3 whitespace-pre-line">
-                {louvor.cifra}
+              <p className="whitespace-pre-line mt-3">
+                {l.cifra}
               </p>
 
 
@@ -217,28 +293,23 @@ export default function LouvoresPage() {
 
 
 
-
-
-            {louvor.link && (
+            {l.link && (
 
               <a
-                href={louvor.link}
+                href={l.link}
                 target="_blank"
-                className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg mt-4 font-semibold"
+                className="block bg-red-600 p-3 rounded-xl mt-4 text-center"
               >
-                ▶ Ouvir Louvor
+                ▶ Ouvir
               </a>
 
             )}
 
 
 
-
-
-
             <button
-              onClick={()=>removerLouvor(louvor.id)}
-              className="text-red-500 mt-4 block"
+              onClick={()=>excluir(l.id)}
+              className="text-red-500 mt-4"
             >
               🗑 Excluir
             </button>

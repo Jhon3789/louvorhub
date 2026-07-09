@@ -1,309 +1,365 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "../../../lib/supabase";
 
 
-type Integrante = {
+type Membro = {
   id:number;
   nome:string;
   funcao:string;
-  presenca:string;
+  status:string;
+};
+
+
+type Culto = {
+  id:number;
+  nome:string;
+  data:string;
+  horario:string;
+};
+
+
+type Escala = {
+  id:number;
+  culto_id:number;
+  membro_id:number;
+  funcao:string;
+  confirmado:boolean;
+  membros:Membro;
+  cultos:Culto;
 };
 
 
 
-export default function Escala(){
 
+export default function EscalaPage(){
 
-  const [integrantes,setIntegrantes] = useState<Integrante[]>([]);
 
+const [membros,setMembros]=useState<Membro[]>([]);
+const [cultos,setCultos]=useState<Culto[]>([]);
+const [escala,setEscala]=useState<Escala[]>([]);
 
 
+const [nome,setNome]=useState("");
+const [funcao,setFuncao]=useState("");
 
-  useEffect(()=>{
+const [cultoId,setCultoId]=useState("");
+const [membroId,setMembroId]=useState("");
 
 
-    const salvo = localStorage.getItem("integrantes");
 
 
 
-    if(salvo){
 
+useEffect(()=>{
 
-      const lista = JSON.parse(salvo).map((p:any)=>({
+ carregarMembros();
+ carregarCultos();
+ carregarEscala();
 
+},[]);
 
-        id:p.id,
 
-        nome:p.nome,
 
-        funcao:p.funcao,
 
-        presenca:p.presenca || "Aguardando"
 
 
-      }));
+async function carregarMembros(){
 
+const {data}=await supabase
+.from("membros")
+.select("*")
+.order("nome");
 
 
-      setIntegrantes(lista);
+setMembros(data || []);
 
+}
 
 
-    }else{
 
 
 
-      const lista:Integrante[]=[
+async function carregarCultos(){
 
+const {data}=await supabase
+.from("cultos")
+.select("*")
+.order("id");
 
-        {
-          id:1,
-          nome:"Jhonny",
-          funcao:"Vocal",
-          presenca:"Aguardando"
-        },
 
+setCultos(data || []);
 
-        {
-          id:2,
-          nome:"Mariam",
-          funcao:"Vocal",
-          presenca:"Aguardando"
-        },
+}
 
 
-        {
-          id:3,
-          nome:"Andrea",
-          funcao:"Vocal",
-          presenca:"Aguardando"
-        },
 
 
-        {
-          id:4,
-          nome:"Angelica",
-          funcao:"Vocal",
-          presenca:"Aguardando"
-        },
 
+async function carregarEscala(){
 
-        {
-          id:5,
-          nome:"Darwin",
-          funcao:"Teclado",
-          presenca:"Aguardando"
-        },
+const {data,error}=await supabase
+.from("escala")
+.select(`
+ *,
+ membros(*),
+ cultos(*)
+`)
+.order("id");
 
 
-        {
-          id:6,
-          nome:"Jhean",
-          funcao:"Bateria",
-          presenca:"Aguardando"
-        },
+if(error){
 
+console.log(error);
+return;
 
-        {
-          id:7,
-          nome:"Jhonnielys",
-          funcao:"Violão",
-          presenca:"Aguardando"
-        }
+}
 
 
-      ];
+setEscala(data || []);
 
+}
 
 
-      salvar(lista);
 
 
-    }
 
 
 
-  },[]);
+async function criarMembro(){
 
 
+if(!nome || !funcao)
+return;
 
 
 
+const {error}=await supabase
+.from("membros")
+.insert({
 
+nome,
+funcao,
+status:"ativo"
 
-  function salvar(lista:Integrante[]){
+});
 
 
-    setIntegrantes(lista);
 
+if(error){
 
-    localStorage.setItem(
+alert(error.message);
+return;
 
-      "integrantes",
+}
 
-      JSON.stringify(lista)
 
-    );
 
+setNome("");
+setFuncao("");
 
-  }
+carregarMembros();
 
 
+}
 
 
 
 
 
-  function mudarPresenca(
 
-    id:number,
 
-    status:string
 
-  ){
+async function adicionarEscala(){
 
 
-    const lista = integrantes.map((p)=>{
+if(!cultoId || !membroId)
+return;
 
 
-      if(p.id===id){
 
+const membro =
+membros.find(
+(m)=>m.id === Number(membroId)
+);
 
-        return {
 
 
-          ...p,
+const {error}=await supabase
+.from("escala")
+.insert({
 
-          presenca:status
+culto_id:Number(cultoId),
+membro_id:Number(membroId),
+funcao:membro?.funcao || ""
 
+});
 
-        };
 
 
-      }
+if(error){
 
+alert(error.message);
+return;
 
+}
 
-      return p;
 
+carregarEscala();
 
-    });
 
+}
 
 
-    salvar(lista);
 
 
-  }
 
 
 
 
+async function confirmar(id:number,valor:boolean){
 
 
+await supabase
+.from("escala")
+.update({
 
-  function icone(funcao:string){
+confirmado:!valor
 
+})
+.eq("id",id);
 
-    if(funcao==="Vocal")
-      return "🎤";
 
+carregarEscala();
 
-    if(funcao==="Teclado")
-      return "🎹";
 
+}
 
-    if(funcao==="Bateria")
-      return "🥁";
 
 
-    if(funcao==="Violão")
-      return "🎸";
 
 
-    return "🎵";
 
+return (
 
-  }
+<div className="p-6 text-white">
 
 
+<h1 className="text-3xl font-bold mb-6">
+👥 Escala do Ministério
+</h1>
 
 
 
 
 
+<div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
-  return (
 
+<h2 className="font-bold mb-3">
+Cadastrar membro
+</h2>
 
-    <main className="p-10 text-white">
 
+<input
+className="w-full p-3 bg-zinc-800 rounded mb-3"
+placeholder="Nome"
+value={nome}
+onChange={(e)=>setNome(e.target.value)}
+/>
 
-      <h1 className="text-3xl font-bold">
 
-        👥 Escala do Ministério
+<input
+className="w-full p-3 bg-zinc-800 rounded mb-3"
+placeholder="Função (Vocal, Violão...)"
+value={funcao}
+onChange={(e)=>setFuncao(e.target.value)}
+/>
 
-      </h1>
 
+<button
+onClick={criarMembro}
+className="bg-blue-600 px-5 py-3 rounded"
+>
+Adicionar membro
+</button>
 
 
-      <p className="mt-2 text-zinc-400">
+</div>
 
-        Confirmação de presença dos integrantes.
 
-      </p>
 
 
 
 
 
+<div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
-      <div className="mt-8 space-y-4">
 
+<h2 className="font-bold mb-3">
+Criar escala
+</h2>
 
 
-      {integrantes.map((p)=>(
 
+<select
+className="w-full p-3 bg-zinc-800 rounded mb-3"
+onChange={(e)=>setCultoId(e.target.value)}
+>
 
-        <div
+<option>
+Escolha o culto
+</option>
 
-          key={p.id}
+{cultos.map(c=>(
 
-          className="rounded-xl bg-zinc-800 p-5 flex justify-between items-center"
+<option key={c.id} value={c.id}>
+{c.nome} - {c.data}
+</option>
 
-        >
+))}
 
+</select>
 
 
-          <div>
 
 
-            <h2 className="text-xl font-bold">
 
-              👤 {p.nome}
+<select
+className="w-full p-3 bg-zinc-800 rounded mb-3"
+onChange={(e)=>setMembroId(e.target.value)}
+>
 
-            </h2>
+<option>
+Escolha o membro
+</option>
 
 
+{membros.map(m=>(
 
-            <p className="mt-2">
+<option key={m.id} value={m.id}>
+{m.nome} - {m.funcao}
+</option>
 
-              {icone(p.funcao)} {p.funcao}
+))}
 
-            </p>
 
+</select>
 
 
-            <p className="mt-2 text-zinc-400">
 
-              Presença: {p.presenca}
 
-            </p>
+<button
+onClick={adicionarEscala}
+className="bg-green-600 px-5 py-3 rounded"
+>
+Adicionar na escala
+</button>
 
 
 
-          </div>
+</div>
 
 
 
@@ -311,70 +367,58 @@ export default function Escala(){
 
 
 
-          <div className="flex gap-2">
 
+<div className="space-y-4">
 
-            <button
 
-              onClick={()=>mudarPresenca(
+{escala.map(e=>(
 
-                p.id,
 
-                "Confirmado"
+<div
+key={e.id}
+className="bg-zinc-900 p-5 rounded-xl"
+>
 
-              )}
 
-              className="rounded-lg bg-green-600 px-3 py-2"
+<h2 className="font-bold text-xl">
+{e.membros?.nome}
+</h2>
 
-            >
 
-              ✅ Vou
+<p>
+🎤 {e.funcao}
+</p>
 
-            </button>
 
+<p>
+⛪ {e.cultos?.nome}
+</p>
 
 
 
+<button
+onClick={()=>confirmar(e.id,e.confirmado)}
+className="bg-blue-600 px-4 py-2 rounded mt-3"
+>
 
-            <button
+{e.confirmado ? "✅ Confirmado" : "Confirmar presença"}
 
-              onClick={()=>mudarPresenca(
+</button>
 
-                p.id,
 
-                "Não vou"
+</div>
 
-              )}
 
-              className="rounded-lg bg-red-600 px-3 py-2"
+))}
 
-            >
 
-              ❌ Não vou
+</div>
 
-            </button>
 
 
+</div>
 
-          </div>
-
-
-
-        </div>
-
-
-      ))}
-
-
-
-      </div>
-
-
-
-    </main>
-
-
-  );
+);
 
 
 }

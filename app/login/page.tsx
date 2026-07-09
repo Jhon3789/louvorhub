@@ -1,98 +1,112 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
 
 
 export default function LoginPage(){
 
-  const router = useRouter();
-
-  const [nome,setNome] = useState("");
+const router = useRouter();
 
 
-
-  function entrar(){
-
-    if(!nome) return;
-
-
-    localStorage.setItem(
-      "usuario",
-      nome
-    );
-
-
-    router.push("/sistema");
-
-  }
+const [email,setEmail] = useState("");
+const [senha,setSenha] = useState("");
 
 
 
-  return (
-
-    <div className="min-h-screen bg-gradient-to-br from-blue-950 to-zinc-950 flex items-center justify-center text-white">
+async function entrar(){
 
 
-      <div className="bg-zinc-900 p-8 rounded-2xl w-96">
+const {error}=await supabase.auth.signInWithPassword({
+
+email,
+password:senha
+
+});
 
 
-        <div className="text-center">
+
+if(error){
+
+alert(error.message);
+return;
+
+}
 
 
-          <div className="text-5xl">
-            🎵
-          </div>
+router.push("/");
 
 
-          <h1 className="text-3xl font-bold mt-4">
-            LouvorHub
-          </h1>
-
-
-          <p className="text-zinc-400">
-            Igreja Quadrangular
-          </p>
-
-
-        </div>
+}
 
 
 
 
-        <input
+return (
 
-          className="w-full mt-6 p-3 bg-zinc-800 rounded-xl"
-
-          placeholder="Seu nome"
-
-          value={nome}
-
-          onChange={(e)=>setNome(e.target.value)}
-
-        />
+<div className="min-h-screen flex items-center justify-center p-6 text-white">
 
 
+<div className="bg-zinc-900 p-8 rounded-xl w-full max-w-md">
 
-        <button
 
-          onClick={entrar}
-
-          className="w-full mt-4 bg-blue-600 p-3 rounded-xl"
-
-        >
-
-          Entrar
-
-        </button>
+<h1 className="text-3xl font-bold mb-6 text-center">
+✝️ LouvorHub
+</h1>
 
 
 
-      </div>
+<input
+
+className="w-full p-3 bg-zinc-800 rounded mb-3"
+
+placeholder="Email"
+
+value={email}
+
+onChange={(e)=>setEmail(e.target.value)}
+
+/>
 
 
-    </div>
 
-  );
+<input
+
+type="password"
+
+className="w-full p-3 bg-zinc-800 rounded mb-3"
+
+placeholder="Senha"
+
+value={senha}
+
+onChange={(e)=>setSenha(e.target.value)}
+
+/>
+
+
+
+<button
+
+onClick={entrar}
+
+className="w-full bg-blue-600 p-3 rounded"
+
+>
+
+Entrar
+
+</button>
+
+
+
+</div>
+
+
+</div>
+
+);
+
 
 }

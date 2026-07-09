@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AuthGuard from "../components/AuthGuard";
+import LogoutButton from "../components/LogoutButton";
 
 
 export default function SistemaLayout({
@@ -7,7 +8,9 @@ export default function SistemaLayout({
 }: {
   children: React.ReactNode;
 }) {
+
   return (
+
     <AuthGuard>
 
       <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-blue-950 text-white flex">
@@ -38,6 +41,8 @@ export default function SistemaLayout({
 
 
 
+
+
           <nav className="flex flex-col gap-2">
 
 
@@ -49,12 +54,14 @@ export default function SistemaLayout({
             </Link>
 
 
+
             <Link
               href="/sistema/louvores"
               className="p-3 rounded-xl hover:bg-blue-600 transition"
             >
               🎵 Louvores
             </Link>
+
 
 
             <Link
@@ -65,12 +72,14 @@ export default function SistemaLayout({
             </Link>
 
 
+
             <Link
               href="/sistema/repertorio"
               className="p-3 rounded-xl hover:bg-blue-600 transition"
             >
               🎶 Repertório
             </Link>
+
 
 
             <Link
@@ -81,12 +90,14 @@ export default function SistemaLayout({
             </Link>
 
 
+
             <Link
               href="/sistema/avisos"
               className="p-3 rounded-xl hover:bg-blue-600 transition"
             >
               📢 Avisos
             </Link>
+
 
 
             <Link
@@ -97,10 +108,23 @@ export default function SistemaLayout({
             </Link>
 
 
+
           </nav>
 
 
+
+
+          <div className="mt-8">
+
+            <LogoutButton />
+
+          </div>
+
+
+
         </aside>
+
+
 
 
 
@@ -138,5 +162,7 @@ export default function SistemaLayout({
 
 
     </AuthGuard>
+
   );
+
 }

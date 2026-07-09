@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "../../../lib/supabase";
 
 
 type Sugestao = {
@@ -9,7 +10,7 @@ type Sugestao = {
   artista:string;
   link:string;
   votos:number;
-  aprovado:boolean;
+  status:string;
 };
 
 
@@ -17,300 +18,360 @@ type Sugestao = {
 export default function SugestoesPage(){
 
 
-  const [sugestoes,setSugestoes] = useState<Sugestao[]>([]);
+const [sugestoes,setSugestoes] = useState<Sugestao[]>([]);
 
-  const [nome,setNome] = useState("");
-  const [artista,setArtista] = useState("");
-  const [link,setLink] = useState("");
 
+const [nome,setNome] = useState("");
+const [artista,setArtista] = useState("");
+const [link,setLink] = useState("");
 
 
-  useEffect(()=>{
 
-    const dados = localStorage.getItem("sugestoes");
 
-    if(dados){
-      setSugestoes(JSON.parse(dados));
-    }
 
-  },[]);
+useEffect(()=>{
 
+ carregarSugestoes();
 
+},[]);
 
-  function salvar(lista:Sugestao[]){
 
-    setSugestoes(lista);
 
-    localStorage.setItem(
-      "sugestoes",
-      JSON.stringify(lista)
-    );
 
-  }
 
 
 
+async function carregarSugestoes(){
 
-  function adicionar(){
 
+const {data,error}=await supabase
+.from("sugestoes")
+.select("*")
+.order("votos",{ascending:false});
 
-    if(!nome) return;
 
 
-    const nova:Sugestao = {
+if(error){
 
-      id:Date.now(),
-      nome,
-      artista,
-      link,
-      votos:0,
-      aprovado:false
+ console.log(error);
+ return;
 
-    };
+}
 
 
-    salvar([
-      ...sugestoes,
-      nova
-    ]);
+setSugestoes(data || []);
 
 
-    setNome("");
-    setArtista("");
-    setLink("");
+}
 
-  }
 
 
 
 
 
-  function votar(id:number){
 
 
-    const lista = sugestoes.map((s)=>{
 
+async function enviarSugestao(){
 
-      if(s.id === id){
 
-        return {
+if(!nome){
 
-          ...s,
-          votos:s.votos+1
+alert("Digite o nome do louvor");
+return;
 
-        };
+}
 
-      }
 
 
-      return s;
+const {error}=await supabase
+.from("sugestoes")
+.insert({
 
-    });
+ nome,
+ artista,
+ link,
+ votos:0,
+ status:"aguardando"
 
+});
 
-    salvar(lista);
 
 
-  }
+if(error){
 
+alert(error.message);
+return;
 
+}
 
 
-  function aprovar(id:number){
 
+setNome("");
+setArtista("");
+setLink("");
 
-    const sugestao =
-      sugestoes.find(
-        (s)=>s.id===id
-      );
+carregarSugestoes();
 
 
-    if(!sugestao) return;
+}
 
 
 
-    const louvoresSalvos =
-      localStorage.getItem("louvores");
 
 
-    const louvores =
-      louvoresSalvos
-      ? JSON.parse(louvoresSalvos)
-      : [];
 
 
 
-    const novoLouvor = {
 
-      id:Date.now(),
+async function votar(
+id:number,
+votos:number
+){
 
-      nome:sugestao.nome,
 
-      artista:sugestao.artista,
 
-      tom:"",
+const {error}=await supabase
+.from("sugestoes")
+.update({
 
-      letra:"",
+ votos:votos+1
 
-      cifra:"",
+})
+.eq("id",id);
 
-      link:sugestao.link
 
-    };
 
+if(error){
 
+alert(error.message);
+return;
 
-    localStorage.setItem(
+}
 
-      "louvores",
 
-      JSON.stringify([
-        ...louvores,
-        novoLouvor
-      ])
 
-    );
+carregarSugestoes();
 
 
+}
 
 
-    const lista = sugestoes.map((s)=>
 
-      s.id===id
-      ? {...s, aprovado:true}
-      : s
 
-    );
 
 
-    salvar(lista);
 
 
-  }
 
+async function aprovarSugestao(
+sugestao:Sugestao
+){
 
 
 
-  return(
+const {error:erroLouvor}=await supabase
+.from("louvores")
+.insert({
 
-    <div className="p-6 text-white">
+ nome:sugestao.nome,
+ artista:sugestao.artista,
+ link:sugestao.link,
+ tom:"",
+ letra:"",
+ cifra:""
 
+});
 
-      <h1 className="text-3xl font-bold mb-6">
-        💡 Sugestões de Louvores
-      </h1>
 
 
+if(erroLouvor){
 
+alert(erroLouvor.message);
+return;
 
-      <div className="bg-zinc-900 p-5 rounded-xl mb-6">
+}
 
 
-        <input
-          className="w-full p-3 mb-3 bg-zinc-800 rounded"
-          placeholder="Nome do louvor"
-          value={nome}
-          onChange={(e)=>setNome(e.target.value)}
-        />
 
 
-        <input
-          className="w-full p-3 mb-3 bg-zinc-800 rounded"
-          placeholder="Artista"
-          value={artista}
-          onChange={(e)=>setArtista(e.target.value)}
-        />
 
+const {error}=await supabase
+.from("sugestoes")
+.update({
 
-        <input
-          className="w-full p-3 mb-3 bg-zinc-800 rounded"
-          placeholder="Link"
-          value={link}
-          onChange={(e)=>setLink(e.target.value)}
-        />
+ status:"aprovado"
 
+})
+.eq("id",sugestao.id);
 
-        <button
-          onClick={adicionar}
-          className="bg-blue-600 px-5 py-3 rounded"
-        >
-          Enviar sugestão
-        </button>
 
 
-      </div>
 
+if(error){
 
+alert(error.message);
+return;
 
+}
 
 
-      {sugestoes.map((s)=>(
 
+carregarSugestoes();
 
-        <div
-          key={s.id}
-          className="bg-zinc-900 p-5 rounded-xl mb-4"
-        >
 
+}
 
-          <h2 className="text-xl font-bold">
-            🎵 {s.nome}
-          </h2>
 
 
-          <p>
-            🎤 {s.artista}
-          </p>
 
 
 
-          <p className="mt-2">
-            👍 {s.votos} votos
-          </p>
 
 
 
-          <button
-            onClick={()=>votar(s.id)}
-            className="bg-green-600 px-4 py-2 rounded mt-3 mr-3"
-          >
-            👍 Votar
-          </button>
+return (
 
+<div className="p-6 text-white">
 
 
-          {!s.aprovado && (
+<h1 className="text-3xl font-bold mb-6">
+💡 Sugestões de Louvores
+</h1>
 
-            <button
-              onClick={()=>aprovar(s.id)}
-              className="bg-blue-600 px-4 py-2 rounded"
-            >
-              ✅ Aprovar
-            </button>
 
-          )}
 
 
 
-          {s.aprovado && (
+<div className="bg-zinc-900 p-5 rounded-xl space-y-3">
 
-            <p className="text-green-400 mt-3">
-              ✅ Enviado para Louvores
-            </p>
 
-          )}
+<input
+className="w-full p-3 bg-zinc-800 rounded"
+placeholder="Nome do louvor"
+value={nome}
+onChange={(e)=>setNome(e.target.value)}
+/>
 
 
 
-        </div>
+<input
+className="w-full p-3 bg-zinc_800 rounded"
+placeholder="Artista"
+value={artista}
+onChange={(e)=>setArtista(e.target.value)}
+/>
 
 
-      ))}
 
+<input
+className="w-full p-3 bg-zinc-800 rounded"
+placeholder="Link YouTube"
+value={link}
+onChange={(e)=>setLink(e.target.value)}
+/>
 
 
-    </div>
 
-  );
+<button
+onClick={enviarSugestao}
+className="bg-blue-600 px-5 py-3 rounded"
+>
+Enviar sugestão
+</button>
+
+
+</div>
+
+
+
+
+
+
+
+<div className="mt-6 space-y-4">
+
+
+{sugestoes.map((s)=>(
+
+
+<div
+key={s.id}
+className="bg-zinc-900 p-5 rounded-xl"
+>
+
+
+<h2 className="text-xl font-bold">
+🎵 {s.nome}
+</h2>
+
+
+<p>
+🎤 {s.artista}
+</p>
+
+
+<p>
+👍 Votos: {s.votos}
+</p>
+
+
+<p>
+Status: {s.status}
+</p>
+
+
+
+
+<button
+onClick={()=>votar(s.id,s.votos)}
+className="bg-green-600 px-4 py-2 rounded mt-3"
+>
+👍 Votar
+</button>
+
+
+
+
+
+<button
+onClick={()=>aprovarSugestao(s)}
+className="bg-blue-600 px-4 py-2 rounded mt-3 ml-2"
+>
+✅ Aprovar
+</button>
+
+
+
+
+
+{s.link && (
+
+<a
+href={s.link}
+target="_blank"
+className="block bg-red-600 px-4 py-2 rounded mt-3 text-center"
+>
+▶ Ouvir
+</a>
+
+)}
+
+
+
+</div>
+
+
+))}
+
+
+</div>
+
+
+
+</div>
+
+);
+
 
 }

@@ -1,55 +1,76 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
 
+
 export default function AuthGuard({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-
-  const router = useRouter();
-
-  const [carregando, setCarregando] = useState(true);
+ children
+}:{
+ children:React.ReactNode
+}){
 
 
-  useEffect(() => {
+const router = useRouter();
 
-    const usuario = localStorage.getItem("usuario");
-
-
-    if(!usuario){
-
-      router.push("/login");
-
-    } else {
-
-      setCarregando(false);
-
-    }
-
-
-  },[router]);
+const [carregando,setCarregando]=useState(true);
 
 
 
-  if(carregando){
+useEffect(()=>{
 
-    return (
 
-      <div className="min-h-screen flex items-center justify-center text-white">
+verificar();
 
-        Carregando...
 
-      </div>
-
-    );
-
-  }
+},[]);
 
 
 
-  return <>{children}</>;
+
+async function verificar(){
+
+
+const {data}=await supabase.auth.getSession();
+
+
+
+if(!data.session){
+
+router.push("/login");
+
+return;
+
+}
+
+
+
+setCarregando(false);
+
+
+}
+
+
+
+
+
+if(carregando){
+
+return (
+
+<div className="text-white p-10">
+Carregando...
+</div>
+
+)
+
+}
+
+
+
+
+return children;
+
 
 }
