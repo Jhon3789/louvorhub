@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "../../../lib/supabase";
 
 type Usuario = {
   id: string;
@@ -37,6 +37,7 @@ export default function EquipePage() {
       return;
     }
 
+
     setUsuarios(data || []);
   }
 
@@ -44,7 +45,9 @@ export default function EquipePage() {
 
   async function adicionarUsuario() {
 
-    if (!nome || !funcao) return;
+    if (!nome || !funcao) {
+      return;
+    }
 
 
     const { error } = await supabase
@@ -66,6 +69,7 @@ export default function EquipePage() {
     setNome("");
     setEmail("");
     setFuncao("");
+    setNivel("membro");
 
     carregarUsuarios();
 
@@ -81,6 +85,7 @@ export default function EquipePage() {
       </h1>
 
 
+
       <div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
         <h2 className="font-bold mb-4">
@@ -92,7 +97,7 @@ export default function EquipePage() {
           className="w-full p-3 bg-zinc-800 rounded mb-3"
           placeholder="Nome"
           value={nome}
-          onChange={(e)=>setNome(e.target.value)}
+          onChange={(e) => setNome(e.target.value)}
         />
 
 
@@ -100,23 +105,24 @@ export default function EquipePage() {
           className="w-full p-3 bg-zinc-800 rounded mb-3"
           placeholder="Email"
           value={email}
-          onChange={(e)=>setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
         />
 
 
         <input
-          className="w-full p-3 bg-zinc-800 rounded mb-3"
+          className="w-full p-3 bg-zinc_800 rounded mb-3"
           placeholder="Função (Vocal, Teclado...)"
           value={funcao}
-          onChange={(e)=>setFuncao(e.target.value)}
+          onChange={(e) => setFuncao(e.target.value)}
         />
 
 
         <select
           className="w-full p-3 bg-zinc-800 rounded mb-3"
           value={nivel}
-          onChange={(e)=>setNivel(e.target.value)}
+          onChange={(e) => setNivel(e.target.value)}
         >
+
           <option value="membro">
             Membro
           </option>
@@ -142,27 +148,30 @@ export default function EquipePage() {
 
       <div className="space-y-4">
 
-        {usuarios.map((u)=>(
+        {usuarios.map((usuario) => (
 
           <div
-            key={u.id}
+            key={usuario.id}
             className="bg-zinc-900 p-5 rounded-xl"
           >
 
             <h2 className="text-xl font-bold">
-              {u.nome}
+              {usuario.nome}
             </h2>
 
-            <p>
-              🎤 {u.funcao}
-            </p>
 
             <p>
-              📧 {u.email}
+              🎤 {usuario.funcao}
             </p>
 
+
             <p>
-              🔑 {u.nivel}
+              📧 {usuario.email}
+            </p>
+
+
+            <p>
+              🔑 {usuario.nivel}
             </p>
 
           </div>
