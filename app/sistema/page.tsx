@@ -2,36 +2,17 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "./lib/supabase";
 
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    let ativo = true;
+    console.log("Página inicial carregou");
 
-    async function verificar() {
-      try {
-        const { data } = await supabase.auth.getSession();
-
-        if (!ativo) return;
-
-        if (data.session) {
-          router.replace("/sistema");
-        } else {
-          router.replace("/login");
-        }
-      } catch (error) {
-        console.error(error);
-        router.replace("/login");
-      }
-    }
-
-    verificar();
-
-    return () => {
-      ativo = false;
-    };
+    setTimeout(() => {
+      console.log("Indo para login");
+      router.replace("/login");
+    }, 2000);
   }, [router]);
 
   return (
