@@ -8,24 +8,30 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const verificar = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+    let ativo = true;
 
-        if (session) {
+    async function verificar() {
+      try {
+        const { data } = await supabase.auth.getSession();
+
+        if (!ativo) return;
+
+        if (data.session) {
           router.replace("/sistema");
         } else {
           router.replace("/login");
         }
       } catch (error) {
-        console.error("Erro ao verificar sessão:", error);
+        console.error(error);
         router.replace("/login");
       }
-    };
+    }
 
     verificar();
+
+    return () => {
+      ativo = false;
+    };
   }, [router]);
 
   return (
