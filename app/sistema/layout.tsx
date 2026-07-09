@@ -2,7 +2,6 @@ import Link from "next/link";
 import AuthGuard from "../components/AuthGuard";
 import LogoutButton from "../components/LogoutButton";
 
-
 export default function SistemaLayout({
   children,
 }: {
@@ -38,8 +37,6 @@ export default function SistemaLayout({
 
 
           </div>
-
-
 
 
 
@@ -92,6 +89,15 @@ export default function SistemaLayout({
 
 
             <Link
+              href="/sistema/equipe"
+              className="p-3 rounded-xl hover:bg-blue-600 transition"
+            >
+              👤 Equipe
+            </Link>
+
+
+
+            <Link
               href="/sistema/avisos"
               className="p-3 rounded-xl hover:bg-blue-600 transition"
             >
@@ -123,8 +129,6 @@ export default function SistemaLayout({
 
 
         </aside>
-
-
 
 
 
