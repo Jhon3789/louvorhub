@@ -19,18 +19,18 @@ export default function SistemaLayout({
 
   const router = useRouter();
 
-  const [usuario,setUsuario] = useState<any>(null);
-  const [perfil,setPerfil] = useState<any>(null);
+  const [usuario, setUsuario] = useState<any>(null);
+  const [perfil, setPerfil] = useState<any>(null);
 
 
 
 
 
-  useEffect(()=>{
+  useEffect(() => {
 
     carregarUsuario();
 
-  },[]);
+  }, []);
 
 
 
@@ -38,13 +38,26 @@ export default function SistemaLayout({
 
 
 
-  async function carregarUsuario(){
+  async function carregarUsuario() {
 
 
     const {
-      data:{user}
+      data: { user }
 
     } = await supabase.auth.getUser();
+
+
+
+
+
+    if (!user) {
+
+      router.push("/login");
+      return;
+
+    }
+
+
 
 
 
@@ -53,25 +66,24 @@ export default function SistemaLayout({
 
 
 
-    if(user){
 
 
-      const {data} = await supabase
+    const { data } = await supabase
 
-        .from("usuarios")
+      .from("usuarios")
 
-        .select("*")
+      .select("*")
 
-        .eq("email", user.email)
+      .eq("email", user.email)
 
-        .single();
-
-
-
-      setPerfil(data);
+      .single();
 
 
-    }
+
+
+
+    setPerfil(data);
+
 
 
   }
@@ -82,7 +94,7 @@ export default function SistemaLayout({
 
 
 
-  async function sair(){
+  async function sair() {
 
 
     await supabase.auth.signOut();
@@ -136,9 +148,12 @@ export default function SistemaLayout({
 
 
 
+
+
             {perfil && (
 
               <p className="mt-2">
+
 
                 {perfil.tipo === "admin"
 
@@ -148,15 +163,20 @@ export default function SistemaLayout({
 
                 }
 
+
               </p>
 
             )}
+
+
+
 
 
           </div>
 
 
         )}
+
 
 
 
@@ -171,66 +191,108 @@ export default function SistemaLayout({
 
 
           <Link
+
             href="/sistema"
+
             className="block bg-zinc-800 p-3 rounded"
+
           >
+
             🏠 Dashboard
+
           </Link>
 
 
 
 
 
+
+
           <Link
+
             href="/sistema/louvores"
+
             className="block bg-zinc-800 p-3 rounded"
+
           >
+
             🎵 Louvores
+
           </Link>
 
 
 
 
 
+
+
           <Link
+
             href="/sistema/cultos"
+
             className="block bg-zinc-800 p-3 rounded"
+
           >
+
             ⛪ Cultos
+
           </Link>
 
 
 
 
 
+
+
           <Link
+
             href="/sistema/escala"
+
             className="block bg-zinc-800 p-3 rounded"
+
           >
+
             👥 Escala
+
           </Link>
 
 
 
 
 
+
+
           <Link
+
             href="/sistema/avisos"
+
             className="block bg-zinc-800 p-3 rounded"
+
           >
+
             📢 Avisos
+
           </Link>
+
+
 
 
 
 
 
           <Link
+
             href="/sistema/equipe"
+
             className="block bg-zinc-800 p-3 rounded"
+
           >
+
             👤 Equipe
+
           </Link>
+
+
 
 
 
@@ -253,12 +315,14 @@ export default function SistemaLayout({
 
 
 
-
         </nav>
 
 
 
+
+
       </aside>
+
 
 
 
