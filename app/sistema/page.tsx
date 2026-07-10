@@ -10,7 +10,9 @@ export default function SistemaPage() {
 
 
   useEffect(() => {
+
     carregarUsuario();
+
   }, []);
 
 
@@ -20,6 +22,7 @@ export default function SistemaPage() {
     const {
       data: { user }
     } = await supabase.auth.getUser();
+
 
     setUsuario(user);
 
@@ -34,6 +37,7 @@ export default function SistemaPage() {
 
       <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800">
 
+
         <h1 className="text-3xl font-bold">
           🙏 Bem-vindo ao LouvorHub
         </h1>
@@ -44,6 +48,7 @@ export default function SistemaPage() {
         </p>
 
 
+
         {usuario && (
 
           <p className="mt-4 text-sm text-blue-400">
@@ -52,12 +57,15 @@ export default function SistemaPage() {
 
         )}
 
+
       </div>
 
 
 
 
+
       <div className="grid md:grid-cols-3 gap-5">
+
 
 
         <div className="bg-zinc-900 p-6 rounded-xl border border-zinc-800">
@@ -66,11 +74,13 @@ export default function SistemaPage() {
             🎵 Louvores
           </h2>
 
+
           <p className="text-zinc-400 mt-2">
-            Organize letras, cifras e tons.
+            Organize letras, cifras e tons dos louvores.
           </p>
 
         </div>
+
 
 
 
@@ -81,11 +91,13 @@ export default function SistemaPage() {
             ⛪ Cultos
           </h2>
 
+
           <p className="text-zinc-400 mt-2">
-            Planeje os próximos cultos.
+            Planeje os cultos e repertórios.
           </p>
 
         </div>
+
 
 
 
@@ -96,35 +108,59 @@ export default function SistemaPage() {
             👥 Escala
           </h2>
 
+
           <p className="text-zinc-400 mt-2">
-            Organize os integrantes.
+            Organize os integrantes do ministério.
           </p>
 
         </div>
 
 
+
       </div>
+
+
 
 
 
 
       <div className="bg-blue-950 p-6 rounded-2xl border border-blue-900">
 
+
         <h2 className="text-2xl font-bold">
-          📢 Próximos passos
+          📢 Avisos do Ministério
         </h2>
+
+
 
         <ul className="mt-3 text-zinc-300 space-y-2">
 
-          <li>✅ Usuários cadastrados</li>
-          <li>✅ Login funcionando</li>
-          <li>✅ Supabase conectado</li>
-          <li>🚀 Melhorar permissões</li>
+
+          <li>
+            🙏 Deus abençoe o Ministério de Louvor
+          </li>
+
+
+          <li>
+            🎵 Confira sempre a escala e os louvores escolhidos
+          </li>
+
+
+          <li>
+            ⛪ Quinta-feira: Culto às 20:00
+          </li>
+
+
+          <li>
+            ⛪ Domingo: Culto às 19:00
+          </li>
+
 
         </ul>
 
 
       </div>
+
 
 
 
