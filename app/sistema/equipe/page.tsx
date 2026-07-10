@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 
+
 type Usuario = {
   id: string;
   nome: string;
@@ -11,7 +12,9 @@ type Usuario = {
   nivel: string;
 };
 
+
 export default function EquipePage() {
+
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
 
   const [nome, setNome] = useState("");
@@ -20,12 +23,18 @@ export default function EquipePage() {
   const [nivel, setNivel] = useState("membro");
 
 
+
   useEffect(() => {
+
     carregarUsuarios();
+
   }, []);
 
 
+
+
   async function carregarUsuarios() {
+
     const { data, error } = await supabase
       .from("usuarios")
       .select("*")
@@ -33,37 +42,73 @@ export default function EquipePage() {
 
 
     if (error) {
+
       console.log(error);
       return;
+
     }
 
 
     setUsuarios(data || []);
+
   }
+
+
+
 
 
 
   async function adicionarUsuario() {
 
+
     if (!nome || !funcao) {
+
+      alert("Preencha nome e função");
       return;
+
     }
+
+
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+
+
+    if (!user) {
+
+      alert("Usuário não autenticado");
+      return;
+
+    }
+
+
 
 
     const { error } = await supabase
       .from("usuarios")
       .insert({
+
+        id: user.id,
         nome,
         email,
         funcao,
         nivel,
+
       });
 
 
+
+
     if (error) {
+
       alert(error.message);
       return;
+
     }
+
+
 
 
     setNome("");
@@ -71,14 +116,22 @@ export default function EquipePage() {
     setFuncao("");
     setNivel("membro");
 
+
     carregarUsuarios();
+
 
   }
 
 
 
+
+
+
+
   return (
+
     <div className="p-6 text-white">
+
 
       <h1 className="text-3xl font-bold mb-6">
         👥 Equipe do Ministério
@@ -86,52 +139,65 @@ export default function EquipePage() {
 
 
 
+
       <div className="bg-zinc-900 p-5 rounded-xl mb-6">
+
 
         <h2 className="font-bold mb-4">
           Adicionar integrante
         </h2>
 
 
+
+
         <input
           className="w-full p-3 bg-zinc-800 rounded mb-3"
           placeholder="Nome"
           value={nome}
-          onChange={(e) => setNome(e.target.value)}
+          onChange={(e)=>setNome(e.target.value)}
         />
+
 
 
         <input
           className="w-full p-3 bg-zinc-800 rounded mb-3"
           placeholder="Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e)=>setEmail(e.target.value)}
         />
+
 
 
         <input
-          className="w-full p-3 bg-zinc_800 rounded mb-3"
+          className="w-full p-3 bg-zinc-800 rounded mb-3"
           placeholder="Função (Vocal, Teclado...)"
           value={funcao}
-          onChange={(e) => setFuncao(e.target.value)}
+          onChange={(e)=>setFuncao(e.target.value)}
         />
+
+
 
 
         <select
           className="w-full p-3 bg-zinc-800 rounded mb-3"
           value={nivel}
-          onChange={(e) => setNivel(e.target.value)}
+          onChange={(e)=>setNivel(e.target.value)}
         >
 
           <option value="membro">
             Membro
           </option>
 
+
           <option value="admin">
             Administrador
           </option>
 
+
         </select>
+
+
+
 
 
         <button
@@ -142,18 +208,25 @@ export default function EquipePage() {
         </button>
 
 
+
       </div>
+
+
+
 
 
 
       <div className="space-y-4">
 
-        {usuarios.map((usuario) => (
+
+        {usuarios.map((usuario)=>(
+
 
           <div
             key={usuario.id}
             className="bg-zinc-900 p-5 rounded-xl"
           >
+
 
             <h2 className="text-xl font-bold">
               {usuario.nome}
@@ -174,13 +247,22 @@ export default function EquipePage() {
               🔑 {usuario.nivel}
             </p>
 
+
+
           </div>
 
+
         ))}
+
+
 
       </div>
 
 
+
+
     </div>
+
   );
+
 }
