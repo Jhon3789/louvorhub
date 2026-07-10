@@ -16,6 +16,7 @@ type Culto = {
   nome:string;
   data:string;
   horario:string;
+  repertorio:any[];
 };
 
 
@@ -45,11 +46,12 @@ const [membroId,setMembroId]=useState("");
 
 
 
+
 useEffect(()=>{
 
- carregarMembros();
- carregarCultos();
- carregarEscala();
+carregarMembros();
+carregarCultos();
+carregarEscala();
 
 },[]);
 
@@ -57,17 +59,32 @@ useEffect(()=>{
 
 
 
+
+
 async function carregarMembros(){
 
-const {data}=await supabase
+
+const {data,error}=await supabase
 .from("membros")
 .select("*")
 .order("nome");
 
 
-setMembros(data || []);
+if(error){
+
+console.log(error);
+return;
 
 }
+
+
+setMembros(data || []);
+
+
+}
+
+
+
 
 
 
@@ -75,13 +92,51 @@ setMembros(data || []);
 
 async function carregarCultos(){
 
-const {data}=await supabase
+
+const {data,error}=await supabase
 .from("cultos")
 .select("*")
 .order("id");
 
 
-setCultos(data || []);
+if(error){
+
+console.log(error);
+return;
+
+}
+
+
+const lista = await Promise.all(
+
+(data || []).map(async(culto:any)=>{
+
+
+const {data:repertorio}=await supabase
+.from("culto_louvores")
+.select("louvores(*)")
+.eq("culto_id",culto.id);
+
+
+
+return {
+
+...culto,
+
+repertorio:
+repertorio?.map((r:any)=>r.louvores) || []
+
+};
+
+
+})
+
+);
+
+
+
+setCultos(lista);
+
 
 }
 
@@ -89,7 +144,12 @@ setCultos(data || []);
 
 
 
+
+
+
+
 async function carregarEscala(){
+
 
 const {data,error}=await supabase
 .from("escala")
@@ -101,6 +161,7 @@ const {data,error}=await supabase
 .order("culto_id");
 
 
+
 if(error){
 
 console.log(error);
@@ -109,9 +170,50 @@ return;
 }
 
 
-setEscala(data || []);
+
+
+const lista = await Promise.all(
+
+(data || []).map(async(item:any)=>{
+
+
+const {data:repertorio}=await supabase
+.from("culto_louvores")
+.select("louvores(*)")
+.eq("culto_id",item.culto_id);
+
+
+
+return {
+
+...item,
+
+cultos:{
+
+...item.cultos,
+
+repertorio:
+repertorio?.map((r:any)=>r.louvores) || []
 
 }
+
+};
+
+
+})
+
+);
+
+
+
+setEscala(lista);
+
+
+}
+
+
+
+
 
 
 
@@ -126,7 +228,7 @@ return;
 
 
 const membro = membros.find(
-m => m.id === Number(membroId)
+m=>m.id === Number(membroId)
 );
 
 
@@ -152,10 +254,16 @@ return;
 }
 
 
+
 carregarEscala();
 
 
 }
+
+
+
+
+
 
 
 
@@ -182,16 +290,28 @@ carregarEscala();
 
 
 
-const grupos = cultos.map(culto => ({
+
+
+
+
+const grupos = cultos.map(culto=>({
+
 
 culto,
 
+
 membros:
+
 escala.filter(
 e=>e.culto_id === culto.id
 )
 
+
 }));
+
+
+
+
 
 
 
@@ -209,12 +329,16 @@ return (
 
 
 
+
+
 <div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
 
 <h2 className="font-bold mb-3">
 Adicionar na escala
 </h2>
+
+
 
 
 
@@ -243,6 +367,8 @@ value={c.id}
 
 
 </select>
+
+
 
 
 
@@ -276,6 +402,7 @@ value={m.id}
 
 
 
+
 <button
 onClick={adicionarEscala}
 className="bg-green-600 px-5 py-3 rounded"
@@ -286,6 +413,7 @@ Adicionar
 </button>
 
 
+
 </div>
 
 
@@ -293,7 +421,7 @@ Adicionar
 
 
 
-<div className="space-y-6">
+
 
 
 {grupos.map(g=>(
@@ -301,7 +429,7 @@ Adicionar
 
 <div
 key={g.culto.id}
-className="bg-zinc-900 p-6 rounded-xl"
+className="bg-zinc-900 p-6 rounded-xl mb-6"
 >
 
 
@@ -310,9 +438,17 @@ className="bg-zinc-900 p-6 rounded-xl"
 </h2>
 
 
-<p className="text-zinc-400 mb-4">
-📅 {g.culto.data} - {g.culto.horario}
+<p className="text-zinc-400">
+📅 {g.culto.data} - ⏰ {g.culto.horario}
 </p>
+
+
+
+
+
+<h3 className="font-bold mt-5">
+👥 Equipe
+</h3>
 
 
 
@@ -322,7 +458,7 @@ className="bg-zinc-900 p-6 rounded-xl"
 
 <div
 key={e.id}
-className="bg-zinc-800 p-4 rounded mb-3"
+className="bg-zinc-800 p-4 rounded mt-3"
 >
 
 
@@ -343,18 +479,12 @@ className="bg-blue-600 px-4 py-2 rounded mt-3"
 >
 
 {e.confirmado
-? "✅ Confirmado"
-: "⏳ Confirmar presença"}
+?"✅ Confirmado"
+:"⏳ Confirmar presença"}
 
 </button>
 
 
-</div>
-
-
-))}
-
-
 
 </div>
 
@@ -363,7 +493,57 @@ className="bg-blue-600 px-4 py-2 rounded mt-3"
 
 
 
+
+
+
+
+
+<h3 className="font-bold mt-6">
+🎵 Repertório
+</h3>
+
+
+
+
+{g.culto.repertorio?.map((l:any)=>(
+
+
+<div
+key={l.id}
+className="bg-zinc-800 p-3 rounded mt-2"
+>
+
+
+<p>
+🎶 {l.nome}
+</p>
+
+
+<p>
+🎤 {l.artista}
+</p>
+
+
+<p>
+🎸 Tom: {l.tom}
+</p>
+
+
 </div>
+
+
+))}
+
+
+
+
+
+</div>
+
+
+))}
+
+
 
 
 
