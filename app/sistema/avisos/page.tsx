@@ -8,20 +8,23 @@ type Aviso = {
   id: number;
   titulo: string;
   mensagem: string;
+  criado_em: string;
 };
 
 
-export default function SistemaPage() {
+
+export default function AvisosPage() {
 
 
-  const [usuario, setUsuario] = useState<any>(null);
   const [avisos, setAvisos] = useState<Aviso[]>([]);
+
+  const [titulo, setTitulo] = useState("");
+  const [mensagem, setMensagem] = useState("");
 
 
 
   useEffect(() => {
 
-    carregarUsuario();
     carregarAvisos();
 
   }, []);
@@ -29,29 +32,14 @@ export default function SistemaPage() {
 
 
 
-  async function carregarUsuario(){
 
-    const {
-      data:{user}
-    } = await supabase.auth.getUser();
+  async function carregarAvisos() {
 
 
-    setUsuario(user);
-
-  }
-
-
-
-
-
-  async function carregarAvisos(){
-
-
-    const {data,error}= await supabase
+    const { data, error } = await supabase
       .from("avisos")
       .select("*")
-      .order("id",{ascending:false})
-      .limit(5);
+      .order("id", { ascending:false });
 
 
 
@@ -74,139 +62,277 @@ export default function SistemaPage() {
 
 
 
+
+  async function criarAviso() {
+
+
+    if(!titulo || !mensagem){
+
+      alert("Preencha todos os campos");
+      return;
+
+    }
+
+
+
+
+    const { error } = await supabase
+      .from("avisos")
+      .insert({
+
+        titulo,
+        mensagem
+
+      });
+
+
+
+
+
+    if(error){
+
+      alert(error.message);
+      return;
+
+    }
+
+
+
+
+    setTitulo("");
+    setMensagem("");
+
+    carregarAvisos();
+
+
+  }
+
+
+
+
+
+
+
+  async function removerAviso(id:number) {
+
+
+    const confirmar = window.confirm(
+      "Deseja remover este aviso?"
+    );
+
+
+
+    if(!confirmar){
+
+      return;
+
+    }
+
+
+
+
+    const {error} = await supabase
+      .from("avisos")
+      .delete()
+      .eq("id",id);
+
+
+
+
+    if(error){
+
+      alert(error.message);
+      return;
+
+    }
+
+
+
+    carregarAvisos();
+
+
+  }
+
+
+
+
+
+
+
   return (
 
-    <div className="text-white space-y-6">
+
+    <div className="p-6 text-white">
 
 
-      <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800">
-
-
-        <h1 className="text-3xl font-bold">
-          🙏 Bem-vindo ao LouvorHub
-        </h1>
-
-
-        <p className="text-zinc-400 mt-2">
-          Organização do Ministério de Louvor
-        </p>
-
-
-
-        {usuario && (
-
-          <p className="mt-4 text-sm text-blue-400">
-            Logado como: {usuario.email}
-          </p>
-
-        )}
-
-
-      </div>
+      <h1 className="text-3xl font-bold mb-6">
+        📢 Avisos do Ministério
+      </h1>
 
 
 
 
 
-      <div className="grid md:grid-cols-3 gap-5">
+      <div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
 
-        <div className="bg-zinc-900 p-6 rounded-xl">
-          <h2 className="text-xl font-bold">
-            🎵 Louvores
-          </h2>
-          <p className="text-zinc-400 mt-2">
-            Letras, cifras e tons.
-          </p>
-        </div>
-
-
-
-        <div className="bg-zinc-900 p-6 rounded-xl">
-          <h2 className="text-xl font-bold">
-            ⛪ Cultos
-          </h2>
-          <p className="text-zinc-400 mt-2">
-            Organização dos cultos.
-          </p>
-        </div>
-
-
-
-        <div className="bg-zinc-900 p-6 rounded-xl">
-          <h2 className="text-xl font-bold">
-            👥 Escala
-          </h2>
-          <p className="text-zinc-400 mt-2">
-            Equipe do ministério.
-          </p>
-        </div>
-
-
-      </div>
-
-
-
-
-
-
-
-      <div className="bg-blue-950 p-6 rounded-2xl border border-blue-900">
-
-
-        <h2 className="text-2xl font-bold mb-4">
-          📢 Avisos do Ministério
+        <h2 className="font-bold mb-4">
+          Novo aviso
         </h2>
 
 
 
-        {avisos.length === 0 ? (
+        <input
+
+          className="w-full p-3 bg-zinc-800 rounded mb-3"
+
+          placeholder="Título do aviso"
+
+          value={titulo}
+
+          onChange={(e)=>setTitulo(e.target.value)}
+
+        />
+
+
+
+
+
+        <textarea
+
+          className="w-full p-3 bg-zinc-800 rounded mb-3"
+
+          placeholder="Mensagem"
+
+          rows={4}
+
+          value={mensagem}
+
+          onChange={(e)=>setMensagem(e.target.value)}
+
+        />
+
+
+
+
+
+        <button
+
+          onClick={criarAviso}
+
+          className="bg-blue-600 px-5 py-3 rounded-xl"
+
+        >
+
+          📢 Publicar aviso
+
+        </button>
+
+
+
+      </div>
+
+
+
+
+
+
+
+
+      <div className="space-y-4">
+
+
+
+        {avisos.length === 0 && (
 
           <p className="text-zinc-400">
             Nenhum aviso publicado.
           </p>
 
-        ) : (
+        )}
 
 
-          <div className="space-y-4">
 
 
-            {avisos.map((aviso)=>(
-
-              <div 
-                key={aviso.id}
-                className="bg-zinc-900 p-4 rounded-xl"
-              >
-
-                <h3 className="font-bold text-lg">
-                  {aviso.titulo}
-                </h3>
 
 
-                <p className="text-zinc-300 mt-2">
-                  {aviso.mensagem}
-                </p>
+        {avisos.map((aviso)=>(
 
 
-              </div>
+          <div
 
-            ))}
+            key={aviso.id}
+
+            className="bg-zinc-900 p-5 rounded-xl"
+
+          >
+
+
+
+            <h2 className="text-xl font-bold">
+
+              {aviso.titulo}
+
+            </h2>
+
+
+
+
+            <p className="mt-2 text-zinc-300 whitespace-pre-line">
+
+              {aviso.mensagem}
+
+            </p>
+
+
+
+
+
+            {aviso.criado_em && (
+
+              <p className="text-sm text-zinc-500 mt-3">
+
+                📅 {new Date(aviso.criado_em).toLocaleDateString("pt-BR")}
+
+              </p>
+
+            )}
+
+
+
+
+
+
+
+            <button
+
+              onClick={()=>removerAviso(aviso.id)}
+
+              className="bg-red-600 px-4 py-2 rounded mt-4"
+
+            >
+
+              ❌ Remover
+
+            </button>
+
 
 
           </div>
 
 
-        )}
+        ))}
+
 
 
       </div>
 
 
 
-
     </div>
 
+
   );
+
 
 }
