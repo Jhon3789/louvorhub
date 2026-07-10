@@ -15,6 +15,7 @@ type Usuario = {
 
 export default function EquipePage() {
 
+
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
 
   const [nome, setNome] = useState("");
@@ -25,9 +26,7 @@ export default function EquipePage() {
 
 
   useEffect(() => {
-
     carregarUsuarios();
-
   }, []);
 
 
@@ -35,13 +34,14 @@ export default function EquipePage() {
 
   async function carregarUsuarios() {
 
+
     const { data, error } = await supabase
       .from("usuarios")
       .select("*")
       .order("nome");
 
 
-    if (error) {
+    if(error){
 
       console.log(error);
       return;
@@ -58,10 +58,10 @@ export default function EquipePage() {
 
 
 
-  async function adicionarUsuario() {
+  async function adicionarUsuario(){
 
 
-    if (!nome || !funcao) {
+    if(!nome || !funcao){
 
       alert("Preencha nome e função");
       return;
@@ -70,44 +70,25 @@ export default function EquipePage() {
 
 
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-
-
-    if (!user) {
-
-      alert("Usuário não autenticado");
-      return;
-
-    }
-
-
-
-
     const { error } = await supabase
       .from("usuarios")
       .insert({
 
-        id: user.id,
         nome,
         email,
         funcao,
-        nivel,
+        nivel
 
       });
 
 
 
-
-    if (error) {
+    if(error){
 
       alert(error.message);
       return;
 
     }
-
 
 
 
@@ -127,7 +108,6 @@ export default function EquipePage() {
 
 
 
-
   return (
 
     <div className="p-6 text-white">
@@ -139,14 +119,12 @@ export default function EquipePage() {
 
 
 
-
       <div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
 
         <h2 className="font-bold mb-4">
-          Adicionar integrante
+          Novo integrante
         </h2>
-
 
 
 
@@ -170,11 +148,10 @@ export default function EquipePage() {
 
         <input
           className="w-full p-3 bg-zinc-800 rounded mb-3"
-          placeholder="Função (Vocal, Teclado...)"
+          placeholder="Função (Vocal, Violão, Teclado...)"
           value={funcao}
           onChange={(e)=>setFuncao(e.target.value)}
         />
-
 
 
 
@@ -188,15 +165,11 @@ export default function EquipePage() {
             Membro
           </option>
 
-
           <option value="admin">
             Administrador
           </option>
 
-
         </select>
-
-
 
 
 
@@ -204,9 +177,8 @@ export default function EquipePage() {
           onClick={adicionarUsuario}
           className="bg-blue-600 px-5 py-3 rounded"
         >
-          Adicionar
+          Adicionar integrante
         </button>
-
 
 
       </div>
@@ -248,16 +220,13 @@ export default function EquipePage() {
             </p>
 
 
-
           </div>
 
 
         ))}
 
 
-
       </div>
-
 
 
 
