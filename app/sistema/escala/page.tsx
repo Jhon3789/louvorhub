@@ -4,372 +4,423 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 
 
-type Usuario = {
-  id: string;
-  nome: string;
-  funcao: string;
+type Membro = {
+  id:number;
+  nome:string;
+  funcao:string;
+  status:string;
 };
 
 
 type Culto = {
-  id: number;
-  nome: string;
-  data: string;
-  horario: string;
+  id:number;
+  nome:string;
+  data:string;
+  horario:string;
 };
 
 
 type Escala = {
-  id: number;
-  culto_id: number;
-  membro_id: string;
-  funcao: string;
-  confirmado: boolean;
-  usuarios: Usuario;
-  cultos: Culto;
+  id:number;
+  culto_id:number;
+  membro_id:number;
+  funcao:string;
+  confirmado:boolean;
+  membros:Membro;
+  cultos:Culto;
 };
 
 
 
-export default function EscalaPage() {
+export default function EscalaPage(){
 
 
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [cultos, setCultos] = useState<Culto[]>([]);
-  const [escala, setEscala] = useState<Escala[]>([]);
+const [membros,setMembros]=useState<Membro[]>([]);
+const [cultos,setCultos]=useState<Culto[]>([]);
+const [escala,setEscala]=useState<Escala[]>([]);
 
 
-  const [cultoId, setCultoId] = useState("");
-  const [membroId, setMembroId] = useState("");
+const [nome,setNome]=useState("");
+const [funcao,setFuncao]=useState("");
 
+const [cultoId,setCultoId]=useState("");
+const [membroId,setMembroId]=useState("");
 
 
-  useEffect(() => {
 
-    carregarUsuarios();
-    carregarCultos();
-    carregarEscala();
 
-  }, []);
+useEffect(()=>{
 
+ carregarMembros();
+ carregarCultos();
+ carregarEscala();
 
+},[]);
 
 
 
-  async function carregarUsuarios() {
 
-    const { data, error } = await supabase
-      .from("usuarios")
-      .select("*")
-      .order("nome");
 
+async function carregarMembros(){
 
-    if(error){
-      console.log(error);
-      return;
-    }
+const {data,error}=await supabase
+.from("membros")
+.select("*")
+.order("nome");
 
 
-    setUsuarios(data || []);
+if(error){
+ console.log(error);
+ return;
+}
 
-  }
 
+setMembros(data || []);
 
+}
 
 
 
 
+async function carregarCultos(){
 
-  async function carregarCultos() {
+const {data,error}=await supabase
+.from("cultos")
+.select("*")
+.order("id");
 
-    const { data, error } = await supabase
-      .from("cultos")
-      .select("*")
-      .order("id");
 
+if(error){
+ console.log(error);
+ return;
+}
 
-    if(error){
-      console.log(error);
-      return;
-    }
 
+setCultos(data || []);
 
-    setCultos(data || []);
+}
 
-  }
 
 
 
 
+async function carregarEscala(){
 
+const {data,error}=await supabase
+.from("escala")
+.select(`
+ *,
+ membros(*),
+ cultos(*)
+`)
+.order("id");
 
 
 
-  async function carregarEscala() {
+if(error){
 
+console.log(error);
+return;
 
-    const { data, error } = await supabase
-      .from("escala")
-      .select(`
-        *,
-        usuarios(*),
-        cultos(*)
-      `)
-      .order("id");
+}
 
 
+setEscala(data || []);
 
-    if(error){
+}
 
-      console.log(error);
-      return;
 
-    }
 
 
 
-    setEscala(data || []);
+async function criarMembro(){
 
-  }
 
+if(!nome || !funcao)
+return;
 
 
 
+const {error}=await supabase
+.from("membros")
+.insert({
 
+nome,
+funcao,
+status:"ativo"
 
+});
 
 
-  async function adicionarEscala() {
 
+if(error){
 
-    if(!cultoId || !membroId){
-      return;
-    }
+alert(error.message);
+return;
 
+}
 
 
-    const usuario = usuarios.find(
-      u => u.id === membroId
-    );
 
+setNome("");
+setFuncao("");
 
+carregarMembros();
 
-    const { error } = await supabase
-      .from("escala")
-      .insert({
 
-        culto_id: Number(cultoId),
-        membro_id: membroId,
-        funcao: usuario?.funcao || ""
+}
 
-      });
 
 
 
 
-    if(error){
+async function adicionarEscala(){
 
-      alert(error.message);
-      return;
 
-    }
+if(!cultoId || !membroId)
+return;
 
 
 
-    carregarEscala();
+const membro =
+membros.find(
+(m)=>m.id === Number(membroId)
+);
 
 
-  }
 
+const {error}=await supabase
+.from("escala")
+.insert({
 
+culto_id:Number(cultoId),
+membro_id:Number(membroId),
+funcao:membro?.funcao || ""
 
+});
 
 
 
+if(error){
 
+alert(error.message);
+return;
 
-  async function confirmar(id:number, valor:boolean){
+}
 
 
-    await supabase
-      .from("escala")
-      .update({
+carregarEscala();
 
-        confirmado: !valor
 
-      })
-      .eq("id", id);
+}
 
 
 
-    carregarEscala();
 
 
-  }
+async function confirmar(id:number,valor:boolean){
 
 
+await supabase
+.from("escala")
+.update({
 
+confirmado:!valor
 
+})
+.eq("id",id);
 
 
+carregarEscala();
 
 
-  return (
+}
 
-    <div className="p-6 text-white">
 
 
-      <h1 className="text-3xl font-bold mb-6">
-        👥 Escala do Ministério
-      </h1>
 
+return (
 
+<div className="p-6 text-white">
 
 
+<h1 className="text-3xl font-bold mb-6">
+👥 Escala do Ministério
+</h1>
 
-      <div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
 
-        <h2 className="font-bold mb-3">
-          Criar escala
-        </h2>
 
+<div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
 
+<h2 className="font-bold mb-3">
+Cadastrar membro
+</h2>
 
 
-        <select
-          className="w-full p-3 bg-zinc-800 rounded mb-3"
-          onChange={(e)=>setCultoId(e.target.value)}
-        >
 
-          <option>
-            Escolha o culto
-          </option>
+<input
+className="w-full p-3 bg-zinc-800 rounded mb-3"
+placeholder="Nome"
+value={nome}
+onChange={(e)=>setNome(e.target.value)}
+/>
 
 
-          {cultos.map(c=>(
 
-            <option
-              key={c.id}
-              value={c.id}
-            >
+<input
+className="w-full p-3 bg-zinc-800 rounded mb-3"
+placeholder="Função (Vocal, Violão...)"
+value={funcao}
+onChange={(e)=>setFuncao(e.target.value)}
+/>
 
-              {c.nome} - {c.data}
 
-            </option>
 
-          ))}
+<button
+onClick={criarMembro}
+className="bg-blue-600 px-5 py-3 rounded"
+>
+Adicionar membro
+</button>
 
 
-        </select>
+</div>
 
 
 
 
 
+<div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
-        <select
-          className="w-full p-3 bg-zinc-800 rounded mb-3"
-          onChange={(e)=>setMembroId(e.target.value)}
-        >
 
-          <option>
-            Escolha integrante
-          </option>
+<h2 className="font-bold mb-3">
+Criar escala
+</h2>
 
 
 
-          {usuarios.map(u=>(
+<select
+className="w-full p-3 bg-zinc-800 rounded mb-3"
+onChange={(e)=>setCultoId(e.target.value)}
+>
 
-            <option
-              key={u.id}
-              value={u.id}
-            >
+<option>
+Escolha o culto
+</option>
 
-              {u.nome} - {u.funcao}
 
-            </option>
+{cultos.map(c=>(
 
-          ))}
+<option key={c.id} value={c.id}>
+{c.nome} - {c.data}
+</option>
 
+))}
 
-        </select>
 
+</select>
 
 
 
 
+<select
+className="w-full p-3 bg-zinc-800 rounded mb-3"
+onChange={(e)=>setMembroId(e.target.value)}
+>
 
-        <button
-          onClick={adicionarEscala}
-          className="bg-green-600 px-5 py-3 rounded"
-        >
-          Adicionar na escala
-        </button>
+<option>
+Escolha o membro
+</option>
 
 
-      </div>
 
+{membros.map(m=>(
 
+<option key={m.id} value={m.id}>
+{m.nome} - {m.funcao}
+</option>
 
+))}
 
 
+</select>
 
 
 
-      <div className="space-y-4">
 
 
-        {escala.map(e=>(
+<button
+onClick={adicionarEscala}
+className="bg-green-600 px-5 py-3 rounded"
+>
+Adicionar na escala
+</button>
 
 
-          <div
-            key={e.id}
-            className="bg-zinc-900 p-5 rounded-xl"
-          >
 
+</div>
 
-            <h2 className="text-xl font-bold">
-              {e.usuarios?.nome}
-            </h2>
 
 
-            <p>
-              🎤 {e.funcao}
-            </p>
 
 
-            <p>
-              ⛪ {e.cultos?.nome}
-            </p>
 
+<div className="space-y-4">
 
 
-            <button
-              onClick={()=>confirmar(e.id,e.confirmado)}
-              className="bg-blue-600 px-4 py-2 rounded mt-3"
-            >
+{escala.map(e=>(
 
-              {e.confirmado
-                ? "✅ Confirmado"
-                : "Confirmar presença"}
 
-            </button>
+<div
+key={e.id}
+className="bg-zinc-900 p-5 rounded-xl"
+>
 
 
+<h2 className="font-bold text-xl">
+{e.membros?.nome}
+</h2>
 
-          </div>
 
 
-        ))}
+<p>
+🎤 {e.funcao}
+</p>
 
 
-      </div>
 
+<p>
+⛪ {e.cultos?.nome}
+</p>
 
-    </div>
 
-  );
+
+
+<button
+onClick={()=>confirmar(e.id,e.confirmado)}
+className="bg-blue-600 px-4 py-2 rounded mt-3"
+>
+
+{e.confirmado ? "✅ Confirmado" : "Confirmar presença"}
+
+</button>
+
+
+</div>
+
+
+))}
+
+
+</div>
+
+
+
+</div>
+
+);
+
 
 }
