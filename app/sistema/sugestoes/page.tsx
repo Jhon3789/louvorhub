@@ -31,7 +31,7 @@ const [link,setLink] = useState("");
 
 useEffect(()=>{
 
- carregarSugestoes();
+carregarSugestoes();
 
 },[]);
 
@@ -53,10 +53,11 @@ const {data,error}=await supabase
 
 if(error){
 
- console.log(error);
- return;
+console.log(error);
+return;
 
 }
+
 
 
 setSugestoes(data || []);
@@ -88,11 +89,11 @@ const {error}=await supabase
 .from("sugestoes")
 .insert({
 
- nome,
- artista,
- link,
- votos:0,
- status:"aguardando"
+nome,
+artista,
+link,
+votos:0,
+status:"aguardando"
 
 });
 
@@ -135,7 +136,7 @@ const {error}=await supabase
 .from("sugestoes")
 .update({
 
- votos:votos+1
+votos:votos+1
 
 })
 .eq("id",id);
@@ -174,12 +175,12 @@ const {error:erroLouvor}=await supabase
 .from("louvores")
 .insert({
 
- nome:sugestao.nome,
- artista:sugestao.artista,
- link:sugestao.link,
- tom:"",
- letra:"",
- cifra:""
+nome:sugestao.nome,
+artista:sugestao.artista,
+link:sugestao.link,
+tom:"",
+letra:"",
+cifra:""
 
 });
 
@@ -196,11 +197,12 @@ return;
 
 
 
+
 const {error}=await supabase
 .from("sugestoes")
 .update({
 
- status:"aprovado"
+status:"aprovado"
 
 })
 .eq("id",sugestao.id);
@@ -230,6 +232,7 @@ carregarSugestoes();
 
 
 
+
 return (
 
 <div className="p-6 text-white">
@@ -243,7 +246,9 @@ return (
 
 
 
+
 <div className="bg-zinc-900 p-5 rounded-xl space-y-3">
+
 
 
 <input
@@ -255,12 +260,16 @@ onChange={(e)=>setNome(e.target.value)}
 
 
 
+
+
 <input
-className="w-full p-3 bg-zinc_800 rounded"
+className="w-full p-3 bg-zinc-800 rounded"
 placeholder="Artista"
 value={artista}
 onChange={(e)=>setArtista(e.target.value)}
 />
+
+
 
 
 
@@ -273,12 +282,17 @@ onChange={(e)=>setLink(e.target.value)}
 
 
 
+
+
 <button
 onClick={enviarSugestao}
 className="bg-blue-600 px-5 py-3 rounded"
 >
+
 Enviar sugestão
+
 </button>
+
 
 
 </div>
@@ -289,21 +303,43 @@ Enviar sugestão
 
 
 
-<div className="mt-6 space-y-4">
 
 
-{sugestoes.map((s)=>(
+{["aguardando","aprovado"].map((statusAtual)=>(
+
+
+<div key={statusAtual} className="mt-8">
+
+
+<h2 className="text-2xl font-bold mb-4">
+
+{statusAtual === "aguardando"
+? "⏳ Sugestões pendentes"
+: "✅ Louvores aprovados"}
+
+</h2>
+
+
+
+
+
+{sugestoes
+.filter((s)=>s.status === statusAtual)
+.map((s)=>(
+
 
 
 <div
 key={s.id}
-className="bg-zinc-900 p-5 rounded-xl"
+className="bg-zinc-900 p-5 rounded-xl mb-4"
 >
 
 
-<h2 className="text-xl font-bold">
+
+<h3 className="text-xl font-bold">
 🎵 {s.nome}
-</h2>
+</h3>
+
 
 
 <p>
@@ -311,9 +347,11 @@ className="bg-zinc-900 p-5 rounded-xl"
 </p>
 
 
+
 <p>
 👍 Votos: {s.votos}
 </p>
+
 
 
 <p>
@@ -323,11 +361,21 @@ Status: {s.status}
 
 
 
+
+
+
+{s.status === "aguardando" && (
+
+<>
+
+
 <button
 onClick={()=>votar(s.id,s.votos)}
 className="bg-green-600 px-4 py-2 rounded mt-3"
 >
+
 👍 Votar
+
 </button>
 
 
@@ -338,8 +386,17 @@ className="bg-green-600 px-4 py-2 rounded mt-3"
 onClick={()=>aprovarSugestao(s)}
 className="bg-blue-600 px-4 py-2 rounded mt-3 ml-2"
 >
+
 ✅ Aprovar
+
 </button>
+
+
+</>
+
+)}
+
+
 
 
 
@@ -352,10 +409,14 @@ href={s.link}
 target="_blank"
 className="block bg-red-600 px-4 py-2 rounded mt-3 text-center"
 >
+
 ▶ Ouvir
+
 </a>
 
 )}
+
+
 
 
 
@@ -365,7 +426,15 @@ className="block bg-red-600 px-4 py-2 rounded mt-3 text-center"
 ))}
 
 
+
+
+
 </div>
+
+
+))}
+
+
 
 
 
