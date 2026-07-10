@@ -13,8 +13,8 @@ export default function LoginPage() {
 
   const [email,setEmail] = useState("");
   const [senha,setSenha] = useState("");
-
   const [erro,setErro] = useState("");
+
 
 
 
@@ -26,12 +26,13 @@ export default function LoginPage() {
 
 
 
-    const {error} = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
 
       email,
       password: senha
 
     });
+
 
 
 
@@ -45,10 +46,18 @@ export default function LoginPage() {
 
 
 
-    router.push("/sistema");
+
+    if(data.user){
+
+      router.push("/sistema");
+
+    }
+
 
 
   }
+
+
 
 
 
@@ -64,7 +73,7 @@ export default function LoginPage() {
 
 
 
-        <h1 className="text-3xl font-bold mb-6 text-center">
+        <h1 className="text-3xl font-bold text-center mb-6">
 
           🙏 LouvorHub
 
@@ -73,11 +82,14 @@ export default function LoginPage() {
 
 
 
-        <h2 className="text-xl mb-4">
+
+        <h2 className="text-xl font-bold mb-4">
 
           🔐 Login
 
         </h2>
+
+
 
 
 
@@ -89,6 +101,8 @@ export default function LoginPage() {
 
           placeholder="Email"
 
+          type="email"
+
           value={email}
 
           onChange={(e)=>setEmail(e.target.value)}
@@ -99,19 +113,23 @@ export default function LoginPage() {
 
 
 
-        <input
 
-          type="password"
+
+        <input
 
           className="w-full p-3 bg-zinc-800 rounded mb-3"
 
           placeholder="Senha"
+
+          type="password"
 
           value={senha}
 
           onChange={(e)=>setSenha(e.target.value)}
 
         />
+
+
 
 
 
@@ -153,8 +171,8 @@ export default function LoginPage() {
 
 
 
-
     </div>
+
 
   );
 
