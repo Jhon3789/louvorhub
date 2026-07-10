@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 
 type Sugestao = {
   id:number;
   nome:string;
   artista:string;
-  link:string;
-  votos:number;
   status:string;
+  votos:number;
+  link:string;
 };
 
 
@@ -18,429 +18,427 @@ type Sugestao = {
 export default function SugestoesPage(){
 
 
-const [sugestoes,setSugestoes] = useState<Sugestao[]>([]);
+  const [sugestoes,setSugestoes] = useState<Sugestao[]>([]);
 
+  const [nome,setNome] = useState("");
+  const [artista,setArtista] = useState("");
+  const [link,setLink] = useState("");
 
-const [nome,setNome] = useState("");
-const [artista,setArtista] = useState("");
-const [link,setLink] = useState("");
+  const [admin,setAdmin] = useState(false);
 
 
 
 
 
-useEffect(()=>{
+  useEffect(()=>{
 
-carregarSugestoes();
+    carregar();
 
-},[]);
+    verificarAdmin();
 
+  },[]);
 
 
 
 
 
 
-async function carregarSugestoes(){
+  async function verificarAdmin(){
 
 
-const {data,error}=await supabase
-.from("sugestoes")
-.select("*")
-.order("votos",{ascending:false});
+    const {
 
+      data:{user}
 
+    } = await supabase.auth.getUser();
 
-if(error){
 
-console.log(error);
-return;
 
-}
+    if(!user) return;
 
 
 
-setSugestoes(data || []);
+    const {data} = await supabase
 
+      .from("usuarios")
 
-}
+      .select("tipo")
 
+      .eq("email",user.email)
 
+      .single();
 
 
 
+    if(data?.tipo === "admin"){
 
+      setAdmin(true);
 
+    }
 
 
-async function enviarSugestao(){
+  }
 
 
-if(!nome){
 
-alert("Digite o nome do louvor");
-return;
 
-}
 
 
 
-const {error}=await supabase
-.from("sugestoes")
-.insert({
+  async function carregar(){
 
-nome,
-artista,
-link,
-votos:0,
-status:"aguardando"
 
-});
+    const {data} = await supabase
 
+      .from("sugestoes")
 
+      .select("*")
 
-if(error){
+      .order("id",{ascending:false});
 
-alert(error.message);
-return;
 
-}
 
+    setSugestoes(data || []);
 
 
-setNome("");
-setArtista("");
-setLink("");
+  }
 
-carregarSugestoes();
 
 
-}
 
 
 
 
+  async function criarSugestao(){
 
 
+    if(!nome || !artista){
 
+      alert("Preencha nome e artista");
 
+      return;
 
-async function votar(
-id:number,
-votos:number
-){
+    }
 
 
 
-const {error}=await supabase
-.from("sugestoes")
-.update({
+    await supabase
 
-votos:votos+1
+      .from("sugestoes")
 
-})
-.eq("id",id);
+      .insert({
 
+        nome,
+        artista,
+        link,
+        status:"aguardando",
+        votos:0
 
+      });
 
-if(error){
 
-alert(error.message);
-return;
 
-}
+    setNome("");
+    setArtista("");
+    setLink("");
 
+    carregar();
 
 
-carregarSugestoes();
+  }
 
 
-}
 
 
 
 
 
+  async function votar(id:number, votos:number){
 
 
 
+    await supabase
 
-async function aprovarSugestao(
-sugestao:Sugestao
-){
+      .from("sugestoes")
 
+      .update({
 
+        votos:votos + 1
 
-const {error:erroLouvor}=await supabase
-.from("louvores")
-.insert({
+      })
 
-nome:sugestao.nome,
-artista:sugestao.artista,
-link:sugestao.link,
-tom:"",
-letra:"",
-cifra:""
+      .eq("id",id);
 
-});
 
 
+    carregar();
 
-if(erroLouvor){
 
-alert(erroLouvor.message);
-return;
+  }
 
-}
 
 
 
 
 
 
-const {error}=await supabase
-.from("sugestoes")
-.update({
+  async function aprovar(sugestao:Sugestao){
 
-status:"aprovado"
 
-})
-.eq("id",sugestao.id);
 
+    await supabase
 
+      .from("sugestoes")
 
+      .update({
 
-if(error){
+        status:"aprovada"
 
-alert(error.message);
-return;
+      })
 
-}
+      .eq("id",sugestao.id);
 
 
 
-carregarSugestoes();
 
 
-}
 
+    await supabase
 
+      .from("louvores")
 
+      .insert({
 
+        nome:sugestao.nome,
 
+        artista:sugestao.artista,
 
+        link:sugestao.link,
 
+        tom:"",
 
+        letra:""
 
+      });
 
-return (
 
-<div className="p-6 text-white">
 
+    carregar();
 
-<h1 className="text-3xl font-bold mb-6">
-💡 Sugestões de Louvores
-</h1>
 
+  }
 
 
 
 
 
-<div className="bg-zinc-900 p-5 rounded-xl space-y-3">
 
 
+  return(
 
-<input
-className="w-full p-3 bg-zinc-800 rounded"
-placeholder="Nome do louvor"
-value={nome}
-onChange={(e)=>setNome(e.target.value)}
-/>
 
+    <div className="text-white">
 
 
+      <h1 className="text-3xl font-bold mb-6">
 
+        🎵 Sugestões de Louvores
 
-<input
-className="w-full p-3 bg-zinc-800 rounded"
-placeholder="Artista"
-value={artista}
-onChange={(e)=>setArtista(e.target.value)}
-/>
+      </h1>
 
 
 
 
 
-<input
-className="w-full p-3 bg-zinc-800 rounded"
-placeholder="Link YouTube"
-value={link}
-onChange={(e)=>setLink(e.target.value)}
-/>
 
 
+      <div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
 
+        <h2 className="text-xl font-bold mb-4">
 
-<button
-onClick={enviarSugestao}
-className="bg-blue-600 px-5 py-3 rounded"
->
+          Nova sugestão
 
-Enviar sugestão
+        </h2>
 
-</button>
 
 
 
-</div>
 
+        <input
 
+          className="w-full bg-zinc-800 p-3 rounded mb-3"
 
+          placeholder="Nome do louvor"
 
+          value={nome}
 
+          onChange={(e)=>setNome(e.target.value)}
 
+        />
 
 
 
-{["aguardando","aprovado"].map((statusAtual)=>(
 
 
-<div key={statusAtual} className="mt-8">
+        <input
 
+          className="w-full bg-zinc-800 p-3 rounded mb-3"
 
-<h2 className="text-2xl font-bold mb-4">
+          placeholder="Artista"
 
-{statusAtual === "aguardando"
-? "⏳ Sugestões pendentes"
-: "✅ Louvores aprovados"}
+          value={artista}
 
-</h2>
+          onChange={(e)=>setArtista(e.target.value)}
 
+        />
 
 
 
 
-{sugestoes
-.filter((s)=>s.status === statusAtual)
-.map((s)=>(
 
+        <input
 
+          className="w-full bg-zinc-800 p-3 rounded mb-3"
 
-<div
-key={s.id}
-className="bg-zinc-900 p-5 rounded-xl mb-4"
->
+          placeholder="Link"
 
+          value={link}
 
+          onChange={(e)=>setLink(e.target.value)}
 
-<h3 className="text-xl font-bold">
-🎵 {s.nome}
-</h3>
+        />
 
 
 
-<p>
-🎤 {s.artista}
-</p>
 
 
+        <button
 
-<p>
-👍 Votos: {s.votos}
-</p>
+          onClick={criarSugestao}
 
+          className="bg-blue-600 px-5 py-3 rounded"
 
+        >
 
-<p>
-Status: {s.status}
-</p>
+          Enviar sugestão
 
+        </button>
 
 
 
+      </div>
 
 
 
-{s.status === "aguardando" && (
 
-<>
 
 
-<button
-onClick={()=>votar(s.id,s.votos)}
-className="bg-green-600 px-4 py-2 rounded mt-3"
->
 
-👍 Votar
+      <div className="space-y-4">
 
-</button>
 
 
+      {sugestoes.map((s)=>(
 
 
+        <div
 
-<button
-onClick={()=>aprovarSugestao(s)}
-className="bg-blue-600 px-4 py-2 rounded mt-3 ml-2"
->
+          key={s.id}
 
-✅ Aprovar
+          className="bg-zinc-900 p-5 rounded-xl"
 
-</button>
+        >
 
 
-</>
 
-)}
+          <h2 className="text-xl font-bold">
 
+            {s.nome}
 
+          </h2>
 
 
 
+          <p>
 
+            {s.artista}
 
-{s.link && (
+          </p>
 
-<a
-href={s.link}
-target="_blank"
-className="block bg-red-600 px-4 py-2 rounded mt-3 text-center"
->
 
-▶ Ouvir
 
-</a>
+          <p>
 
-)}
+            👥 Votos: {s.votos}
 
+          </p>
 
 
 
+          <p>
 
-</div>
+            Status: {s.status}
 
+          </p>
 
-))}
 
 
 
 
+          <button
 
-</div>
+            onClick={()=>votar(s.id,s.votos)}
 
+            className="bg-green-600 px-4 py-2 rounded mt-3"
 
-))}
+          >
 
+            👍 Votar
 
+          </button>
 
 
 
-</div>
 
-);
+
+
+          {admin && s.status !== "aprovada" && (
+
+            <button
+
+              onClick={()=>aprovar(s)}
+
+              className="bg-blue-600 px-4 py-2 rounded mt-3 ml-3"
+
+            >
+
+              ✅ Aprovar
+
+            </button>
+
+          )}
+
+
+
+
+
+        </div>
+
+
+      ))}
+
+
+
+      </div>
+
+
+
+
+    </div>
+
+
+  );
 
 
 }
