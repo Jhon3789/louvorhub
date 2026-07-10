@@ -13,6 +13,18 @@ type Louvor = {
 };
 
 
+type Equipe = {
+  id:number;
+  confirmado:boolean;
+  membros:{
+    id:number;
+    nome:string;
+    funcao:string;
+  };
+};
+
+
+
 type Culto = {
   id:number;
   nome:string;
@@ -20,6 +32,7 @@ type Culto = {
   horario:string;
   status:string;
   repertorio:Louvor[];
+  equipe:Equipe[];
 };
 
 
@@ -41,11 +54,10 @@ const [horario,setHorario] = useState("");
 
 useEffect(()=>{
 
-  carregarLouvores();
-  carregarCultos();
+carregarLouvores();
+carregarCultos();
 
 },[]);
-
 
 
 
@@ -63,17 +75,51 @@ const {data,error}=await supabase
 
 if(error){
 
- console.log(error);
- return;
+console.log(error);
+return;
 
 }
 
 
 setLouvores(data || []);
 
+}
+
+
+
+
+
+
+
+async function buscarEquipe(cultoId:number){
+
+
+const {data,error}=await supabase
+.from("escala")
+.select(`
+ id,
+ confirmado,
+ membros(
+   id,
+   nome,
+   funcao
+ )
+`)
+.eq("culto_id",cultoId);
+
+
+
+if(error){
+
+console.log(error);
+return [];
 
 }
 
+
+return data || [];
+
+}
 
 
 
@@ -93,33 +139,42 @@ const {data,error}=await supabase
 
 if(error){
 
- console.log(error);
- return;
+console.log(error);
+return;
 
 }
 
 
 
+
 const lista = await Promise.all(
 
-(data || []).map(async(culto)=>{
+(data || []).map(async(culto:any)=>{
 
 
-const {data: repertorio}=await supabase
+const {data:repertorio}=await supabase
 .from("culto_louvores")
 .select("louvores(*)")
 .eq("culto_id",culto.id);
 
 
 
+
 return {
 
- ...culto,
+...culto,
 
- repertorio:
- repertorio?.map((item:any)=>item.louvores) || []
+
+repertorio:
+repertorio?.map((item:any)=>item.louvores) || [],
+
+
+equipe:
+await buscarEquipe(culto.id)
+
 
 };
+
 
 
 })
@@ -135,19 +190,13 @@ setCultos(lista);
 
 
 
-
-
-
-
-
-
 async function criarCulto(){
 
 
 if(!nome || !data || !horario){
 
- alert("Preencha todos os campos");
- return;
+alert("Preencha todos os campos");
+return;
 
 }
 
@@ -157,10 +206,10 @@ const {data:novo,error}=await supabase
 .from("cultos")
 .insert({
 
- nome,
- data,
- horario,
- status:"planejado"
+nome,
+data,
+horario,
+status:"planejado"
 
 })
 .select()
@@ -177,14 +226,14 @@ return;
 
 
 
-
 setCultos([
 
 ...cultos,
 
 {
- ...novo,
- repertorio:[]
+...novo,
+repertorio:[],
+equipe:[]
 }
 
 ]);
@@ -204,7 +253,6 @@ setHorario("");
 
 
 
-
 async function adicionarLouvor(
 cultoId:number,
 louvor:Louvor
@@ -216,8 +264,8 @@ const {error}=await supabase
 .from("culto_louvores")
 .insert({
 
- culto_id:cultoId,
- louvor_id:louvor.id
+culto_id:cultoId,
+louvor_id:louvor.id
 
 });
 
@@ -236,7 +284,6 @@ carregarCultos();
 
 
 }
-
 
 
 
@@ -281,7 +328,6 @@ carregarCultos();
 
 
 
-
 return (
 
 <div className="p-6 text-white">
@@ -290,6 +336,7 @@ return (
 <h1 className="text-3xl font-bold mb-6">
 ⛪ Cultos
 </h1>
+
 
 
 
@@ -329,12 +376,15 @@ onChange={(e)=>setHorario(e.target.value)}
 onClick={criarCulto}
 className="bg-blue-600 px-5 py-3 rounded"
 >
+
 Criar Culto
+
 </button>
 
 
-
 </div>
+
+
 
 
 
@@ -356,14 +406,18 @@ className="bg-zinc-900 p-5 rounded-xl mb-6"
 </h2>
 
 
+
 <p>
 📅 {culto.data} - ⏰ {culto.horario}
 </p>
 
 
+
 <p>
 Status: {culto.status}
 </p>
+
+
 
 
 
@@ -401,14 +455,14 @@ className="bg-zinc-800 p-3 rounded mt-3"
 
 
 
-
 <button
 onClick={()=>removerLouvor(culto.id,l.id)}
 className="text-red-500 mt-2"
 >
-❌ Remover
-</button>
 
+❌ Remover
+
+</button>
 
 
 </div>
@@ -421,9 +475,58 @@ className="text-red-500 mt-2"
 
 
 
+
+
+<h3 className="font-bold mt-6">
+👥 Escala
+</h3>
+
+
+
+
+{culto.equipe.map((e)=>(
+
+
+<div
+key={e.id}
+className="bg-zinc-800 p-3 rounded mt-2"
+>
+
+
+<p>
+👤 {e.membros.nome}
+</p>
+
+
+<p>
+🎤 {e.membros.funcao}
+</p>
+
+
+
+<p>
+{e.confirmado
+? "✅ Confirmado"
+: "⏳ Aguardando"}
+</p>
+
+
+</div>
+
+
+))}
+
+
+
+
+
+
+
+
 <h3 className="font-bold mt-6">
 Adicionar louvor
 </h3>
+
 
 
 
@@ -456,6 +559,7 @@ className="block w-full text-left bg-zinc-800 p-3 rounded mt-2"
 
 
 ))}
+
 
 
 
