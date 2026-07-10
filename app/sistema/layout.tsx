@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 
@@ -33,7 +34,7 @@ export default function SistemaLayout({
 
 
     const {
-      data: { user }
+      data:{user}
 
     } = await supabase.auth.getUser();
 
@@ -48,15 +49,16 @@ export default function SistemaLayout({
 
 
 
-
   return (
 
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white flex">
 
 
-      <header className="bg-zinc-900 p-5">
 
-        <h1 className="text-2xl font-bold">
+      <aside className="w-64 bg-zinc-900 p-5">
+
+
+        <h1 className="text-2xl font-bold mb-6">
           🙏 LouvorHub
         </h1>
 
@@ -64,24 +66,89 @@ export default function SistemaLayout({
 
         {usuario && (
 
-          <p className="text-zinc-400 mt-2">
-            Logado como: {usuario.email}
+          <p className="text-sm text-zinc-400 mb-6">
+            {usuario.email}
           </p>
 
         )}
 
-      </header>
+
+
+
+
+        <nav className="space-y-3">
+
+
+          <Link
+            href="/sistema"
+            className="block bg-zinc-800 p-3 rounded"
+          >
+            🏠 Dashboard
+          </Link>
+
+
+
+          <Link
+            href="/sistema/louvores"
+            className="block bg-zinc-800 p-3 rounded"
+          >
+            🎵 Louvores
+          </Link>
+
+
+
+          <Link
+            href="/sistema/cultos"
+            className="block bg-zinc-800 p-3 rounded"
+          >
+            ⛪ Cultos
+          </Link>
+
+
+
+          <Link
+            href="/sistema/escala"
+            className="block bg-zinc-800 p-3 rounded"
+          >
+            👥 Escala
+          </Link>
+
+
+
+          <Link
+            href="/sistema/avisos"
+            className="block bg-zinc-800 p-3 rounded"
+          >
+            📢 Avisos
+          </Link>
+
+
+
+          <Link
+            href="/sistema/equipe"
+            className="block bg-zinc-800 p-3 rounded"
+          >
+            👤 Equipe
+          </Link>
+
+
+
+        </nav>
+
+
+      </aside>
 
 
 
 
 
-      <main>
+      <main className="flex-1 p-6">
+
 
         {children}
 
-      </main>
 
+      </main>
 
 
 
