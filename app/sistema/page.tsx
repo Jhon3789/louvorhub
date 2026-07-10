@@ -1,57 +1,77 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
 
 
-export default function LoginPage() {
+export default function DashboardPage() {
 
 
-  const router = useRouter();
-
-
-  const [email,setEmail] = useState("");
-  const [senha,setSenha] = useState("");
-  const [erro,setErro] = useState("");
+  const [louvores,setLouvores] = useState(0);
+  const [cultos,setCultos] = useState(0);
+  const [usuarios,setUsuarios] = useState(0);
+  const [avisos,setAvisos] = useState(0);
 
 
 
 
+  useEffect(()=>{
 
-  async function entrar(){
+    carregarDados();
 
-
-    setErro("");
-
-
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-
-      email,
-      password: senha
-
-    });
+  },[]);
 
 
 
 
 
-    if(error){
 
-      setErro(error.message);
-      return;
-
-    }
+  async function carregarDados(){
 
 
+    const {count:totalLouvores} = await supabase
+
+      .from("louvores")
+
+      .select("*",{count:"exact", head:true});
 
 
-    if(data.user){
 
-      router.push("/sistema");
+    const {count:totalCultos} = await supabase
 
-    }
+      .from("cultos")
+
+      .select("*",{count:"exact", head:true});
+
+
+
+
+    const {count:totalUsuarios} = await supabase
+
+      .from("usuarios")
+
+      .select("*",{count:"exact", head:true});
+
+
+
+
+    const {count:totalAvisos} = await supabase
+
+      .from("avisos")
+
+      .select("*",{count:"exact", head:true});
+
+
+
+
+
+    setLouvores(totalLouvores || 0);
+
+    setCultos(totalCultos || 0);
+
+    setUsuarios(totalUsuarios || 0);
+
+    setAvisos(totalAvisos || 0);
 
 
 
@@ -65,29 +85,22 @@ export default function LoginPage() {
 
   return (
 
-    <div className="min-h-screen bg-black text-white flex items-center justify-center">
+    <div>
+
+
+      <h1 className="text-3xl font-bold mb-2">
+
+        🙏 Bem-vindo ao LouvorHub
+
+      </h1>
 
 
 
-      <div className="bg-zinc-900 p-8 rounded-xl w-full max-w-md">
+      <p className="text-zinc-400 mb-8">
 
+        Organização do Ministério de Louvor
 
-
-        <h1 className="text-3xl font-bold text-center mb-6">
-
-          🙏 LouvorHub
-
-        </h1>
-
-
-
-
-
-        <h2 className="text-xl font-bold mb-4">
-
-          🔐 Login
-
-        </h2>
+      </p>
 
 
 
@@ -95,55 +108,27 @@ export default function LoginPage() {
 
 
 
-        <input
-
-          className="w-full p-3 bg-zinc-800 rounded mb-3"
-
-          placeholder="Email"
-
-          type="email"
-
-          value={email}
-
-          onChange={(e)=>setEmail(e.target.value)}
-
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
 
 
 
 
 
+        <div className="bg-zinc-900 p-6 rounded-xl">
 
+          <h2 className="text-xl">
 
-        <input
+            🎵 Louvores
 
-          className="w-full p-3 bg-zinc-800 rounded mb-3"
+          </h2>
 
-          placeholder="Senha"
+          <p className="text-4xl font-bold mt-3">
 
-          type="password"
-
-          value={senha}
-
-          onChange={(e)=>setSenha(e.target.value)}
-
-        />
-
-
-
-
-
-
-
-        {erro && (
-
-          <p className="text-red-500 mb-3">
-
-            {erro}
+            {louvores}
 
           </p>
 
-        )}
+        </div>
 
 
 
@@ -151,17 +136,65 @@ export default function LoginPage() {
 
 
 
-        <button
+        <div className="bg-zinc-900 p-6 rounded-xl">
 
-          onClick={entrar}
+          <h2 className="text-xl">
 
-          className="w-full bg-blue-600 p-3 rounded-xl"
+            ⛪ Cultos
 
-        >
+          </h2>
 
-          Entrar
+          <p className="text-4xl font-bold mt-3">
 
-        </button>
+            {cultos}
+
+          </p>
+
+        </div>
+
+
+
+
+
+
+
+        <div className="bg-zinc-900 p-6 rounded-xl">
+
+          <h2 className="text-xl">
+
+            👥 Integrantes
+
+          </h2>
+
+          <p className="text-4xl font-bold mt-3">
+
+            {usuarios}
+
+          </p>
+
+        </div>
+
+
+
+
+
+
+
+        <div className="bg-zinc-900 p-6 rounded-xl">
+
+          <h2 className="text-xl">
+
+            📢 Avisos
+
+          </h2>
+
+          <p className="text-4xl font-bold mt-3">
+
+            {avisos}
+
+          </p>
+
+        </div>
 
 
 
@@ -171,8 +204,10 @@ export default function LoginPage() {
 
 
 
-    </div>
 
+
+
+    </div>
 
   );
 

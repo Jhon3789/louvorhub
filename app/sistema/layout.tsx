@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
 
 export default function SistemaLayout({
@@ -16,8 +17,11 @@ export default function SistemaLayout({
 }) {
 
 
+  const router = useRouter();
+
   const [usuario,setUsuario] = useState<any>(null);
   const [perfil,setPerfil] = useState<any>(null);
+
 
 
 
@@ -27,6 +31,7 @@ export default function SistemaLayout({
     carregarUsuario();
 
   },[]);
+
 
 
 
@@ -63,11 +68,26 @@ export default function SistemaLayout({
 
 
 
-
       setPerfil(data);
 
 
     }
+
+
+  }
+
+
+
+
+
+
+
+  async function sair(){
+
+
+    await supabase.auth.signOut();
+
+    router.push("/login");
 
 
   }
@@ -104,6 +124,7 @@ export default function SistemaLayout({
 
 
 
+
         {usuario && (
 
           <div className="text-sm text-zinc-400 mb-6">
@@ -115,11 +136,9 @@ export default function SistemaLayout({
 
 
 
-
             {perfil && (
 
               <p className="mt-2">
-
 
                 {perfil.tipo === "admin"
 
@@ -129,11 +148,9 @@ export default function SistemaLayout({
 
                 }
 
-
               </p>
 
             )}
-
 
 
           </div>
@@ -151,12 +168,15 @@ export default function SistemaLayout({
 
 
 
+
+
           <Link
             href="/sistema"
             className="block bg-zinc-800 p-3 rounded"
           >
             🏠 Dashboard
           </Link>
+
 
 
 
@@ -216,12 +236,20 @@ export default function SistemaLayout({
 
 
 
-          <Link
-            href="/login"
-            className="block bg-blue-600 p-3 rounded"
+
+          <button
+
+            onClick={sair}
+
+            className="w-full bg-red-600 p-3 rounded text-left"
+
           >
-            🔐 Login
-          </Link>
+
+            🚪 Sair
+
+          </button>
+
+
 
 
 
@@ -237,9 +265,12 @@ export default function SistemaLayout({
 
 
 
+
       <main className="flex-1 p-6">
 
+
         {children}
+
 
       </main>
 
