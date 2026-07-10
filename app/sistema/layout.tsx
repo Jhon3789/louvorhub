@@ -1,6 +1,8 @@
 import Link from "next/link";
 import AuthGuard from "../components/AuthGuard";
 import LogoutButton from "../components/LogoutButton";
+import UserInfo from "../components/UserInfo";
+
 
 export default function SistemaLayout({
   children,
@@ -37,6 +39,9 @@ export default function SistemaLayout({
 
 
           </div>
+
+
+          <UserInfo />
 
 
 
@@ -140,7 +145,7 @@ export default function SistemaLayout({
           <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 mb-8">
 
 
-            <h2 className="text-3xl font-bold">
+            <h2 className="3xl font-bold">
               🙏 Bem-vindo ao LouvorHub
             </h2>
 

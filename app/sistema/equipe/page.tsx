@@ -1,28 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../../../lib/supabase";
-
 
 type Usuario = {
   id: string;
   nome: string;
   email: string;
   funcao: string;
-  nivel: string;
+  tipo: string;
+  status: string;
 };
 
 
 export default function EquipePage() {
 
-
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
 
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
   const [funcao, setFuncao] = useState("");
-  const [nivel, setNivel] = useState("membro");
-
+  const [tipo, setTipo] = useState("membro");
+  const [status, setStatus] = useState("ativo");
 
 
   useEffect(() => {
@@ -31,80 +30,77 @@ export default function EquipePage() {
 
 
 
+  async function carregarUsuarios(){
 
-  async function carregarUsuarios() {
+    const resposta = await fetch("/api/usuarios");
 
+    const dados = await resposta.json();
 
-    const { data, error } = await supabase
-      .from("usuarios")
-      .select("*")
-      .order("nome");
-
-
-    if(error){
-
-      console.log(error);
-      return;
-
-    }
-
-
-    setUsuarios(data || []);
+    setUsuarios(dados || []);
 
   }
 
 
 
 
+  async function criarUsuario(){
 
+    if(!nome || !email || !senha){
 
-  async function adicionarUsuario(){
-
-
-    if(!nome || !funcao){
-
-      alert("Preencha nome e função");
+      alert("Preencha nome, email e senha");
       return;
 
     }
 
 
+    const resposta = await fetch("/api/usuarios",{
 
-    const { error } = await supabase
-      .from("usuarios")
-      .insert({
+      method:"POST",
+
+      headers:{
+        "Content-Type":"application/json"
+      },
+
+      body:JSON.stringify({
 
         nome,
         email,
+        senha,
         funcao,
-        nivel
+        tipo,
+        status
 
-      });
+      })
+
+    });
 
 
 
-    if(error){
+    const dados = await resposta.json();
 
-      alert(error.message);
+
+    if(dados.error){
+
+      alert(dados.error);
       return;
 
     }
+
+
+
+    alert("Usuário criado com sucesso!");
 
 
 
     setNome("");
     setEmail("");
+    setSenha("");
     setFuncao("");
-    setNivel("membro");
-
 
     carregarUsuarios();
 
 
   }
-
-
-
 
 
 
@@ -114,51 +110,56 @@ export default function EquipePage() {
 
 
       <h1 className="text-3xl font-bold mb-6">
-        👥 Equipe do Ministério
+        👥 Gerenciar Usuários
       </h1>
 
 
 
-      <div className="bg-zinc-900 p-5 rounded-xl mb-6">
+      <div className="bg-zinc-900 p-6 rounded-xl space-y-3">
 
 
-        <h2 className="font-bold mb-4">
-          Novo integrante
+        <h2 className="text-xl font-bold">
+          Novo usuário
         </h2>
 
 
-
         <input
-          className="w-full p-3 bg-zinc-800 rounded mb-3"
+          className="w-full p-3 bg-zinc-800 rounded"
           placeholder="Nome"
           value={nome}
           onChange={(e)=>setNome(e.target.value)}
         />
 
 
-
         <input
-          className="w-full p-3 bg-zinc-800 rounded mb-3"
+          className="w-full p-3 bg-zinc-800 rounded"
           placeholder="Email"
           value={email}
           onChange={(e)=>setEmail(e.target.value)}
         />
 
 
+        <input
+          type="password"
+          className="w-full p-3 bg-zinc-800 rounded"
+          placeholder="Senha"
+          value={senha}
+          onChange={(e)=>setSenha(e.target.value)}
+        />
+
 
         <input
-          className="w-full p-3 bg-zinc-800 rounded mb-3"
-          placeholder="Função (Vocal, Violão, Teclado...)"
+          className="w-full p-3 bg-zinc-800 rounded"
+          placeholder="Função (Vocal, Teclado...)"
           value={funcao}
           onChange={(e)=>setFuncao(e.target.value)}
         />
 
 
-
         <select
-          className="w-full p-3 bg-zinc-800 rounded mb-3"
-          value={nivel}
-          onChange={(e)=>setNivel(e.target.value)}
+          className="w-full p-3 bg-zinc-800 rounded"
+          value={tipo}
+          onChange={(e)=>setTipo(e.target.value)}
         >
 
           <option value="membro">
@@ -172,62 +173,69 @@ export default function EquipePage() {
         </select>
 
 
-
         <button
-          onClick={adicionarUsuario}
+          onClick={criarUsuario}
           className="bg-blue-600 px-5 py-3 rounded"
         >
-          Adicionar integrante
+          Criar usuário
         </button>
 
 
-      </div>
+      </div>      <div className="mt-6 space-y-4">
+
+        <h2 className="text-2xl font-bold">
+          Lista de usuários
+        </h2>
 
 
+        {usuarios.length === 0 ? (
 
-
-
-
-      <div className="space-y-4">
-
-
-        {usuarios.map((usuario)=>(
-
-
-          <div
-            key={usuario.id}
-            className="bg-zinc-900 p-5 rounded-xl"
-          >
-
-
-            <h2 className="text-xl font-bold">
-              {usuario.nome}
-            </h2>
-
-
-            <p>
-              🎤 {usuario.funcao}
-            </p>
-
-
-            <p>
-              📧 {usuario.email}
-            </p>
-
-
-            <p>
-              🔑 {usuario.nivel}
-            </p>
-
-
+          <div className="bg-zinc-900 p-5 rounded-xl">
+            Nenhum usuário cadastrado.
           </div>
 
+        ) : (
 
-        ))}
+          usuarios.map((usuario)=>(
+
+            <div
+              key={usuario.id}
+              className="bg-zinc-900 p-5 rounded-xl"
+            >
+
+              <h3 className="text-xl font-bold">
+                👤 {usuario.nome}
+              </h3>
+
+
+              <p>
+                📧 {usuario.email}
+              </p>
+
+
+              <p>
+                🎤 {usuario.funcao}
+              </p>
+
+
+              <p>
+                👑 Tipo: {usuario.tipo}
+              </p>
+
+
+              <p>
+                🟢 Status: {usuario.status}
+              </p>
+
+
+            </div>
+
+          ))
+
+        )}
 
 
       </div>
-
 
 
     </div>
