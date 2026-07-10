@@ -54,26 +54,21 @@ export default function SistemaLayout({
     <div className="min-h-screen bg-black text-white">
 
 
+      <header className="bg-zinc-900 p-5">
 
-      <header className="bg-zinc-900 p-5 flex justify-between items-center">
-
-
-        <h1 className="text-xl font-bold">
+        <h1 className="text-2xl font-bold">
           🙏 LouvorHub
         </h1>
 
 
 
-
         {usuario && (
 
-          <p className="text-sm text-zinc-400">
-            {usuario.email}
+          <p className="text-zinc-400 mt-2">
+            Logado como: {usuario.email}
           </p>
 
         )}
-
-
 
       </header>
 
