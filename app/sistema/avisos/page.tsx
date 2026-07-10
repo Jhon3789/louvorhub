@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import AdminOnly from "@/components/AdminOnly";
+
 
 type Aviso = {
   id: number;
@@ -10,7 +10,6 @@ type Aviso = {
   mensagem: string;
   criado_em: string;
 };
-
 
 
 export default function AvisosPage() {
@@ -28,7 +27,6 @@ export default function AvisosPage() {
     carregarAvisos();
 
   }, []);
-
 
 
 
@@ -61,9 +59,6 @@ export default function AvisosPage() {
 
 
 
-
-
-
   async function criarAviso() {
 
 
@@ -73,7 +68,6 @@ export default function AvisosPage() {
       return;
 
     }
-
 
 
 
@@ -88,15 +82,12 @@ export default function AvisosPage() {
 
 
 
-
-
     if(error){
 
       alert(error.message);
       return;
 
     }
-
 
 
 
@@ -112,16 +103,12 @@ export default function AvisosPage() {
 
 
 
-
-
-
-  async function removerAviso(id:number) {
+  async function removerAviso(id:number){
 
 
     const confirmar = window.confirm(
       "Deseja remover este aviso?"
     );
-
 
 
     if(!confirmar){
@@ -132,13 +119,10 @@ export default function AvisosPage() {
 
 
 
-
     const {error} = await supabase
       .from("avisos")
       .delete()
       .eq("id",id);
-
-
 
 
 
@@ -155,7 +139,6 @@ export default function AvisosPage() {
 
 
   }
-
 
 
 
@@ -176,73 +159,75 @@ export default function AvisosPage() {
 
 
 
-      <AdminOnly>
+      <div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
 
-        <div className="bg-zinc-900 p-5 rounded-xl mb-6">
-
-
-          <h2 className="font-bold mb-4">
-            Novo aviso
-          </h2>
+        <h2 className="font-bold mb-4">
+          Criar aviso
+        </h2>
 
 
 
-          <input
+        <input
 
-            className="w-full p-3 bg-zinc-800 rounded mb-3"
+          className="w-full p-3 bg-zinc-800 rounded mb-3"
 
-            placeholder="Título do aviso"
+          placeholder="Título do aviso"
 
-            value={titulo}
+          value={titulo}
 
-            onChange={(e)=>setTitulo(e.target.value)}
+          onChange={(e)=>setTitulo(e.target.value)}
 
-          />
+        />
 
 
 
 
+        <textarea
 
-          <textarea
+          className="w-full p-3 bg-zinc-800 rounded mb-3"
 
-            className="w-full p-3 bg-zinc-800 rounded mb-3"
+          placeholder="Mensagem"
 
-            placeholder="Mensagem"
+          rows={4}
 
-            rows={4}
+          value={mensagem}
 
-            value={mensagem}
+          onChange={(e)=>setMensagem(e.target.value)}
 
-            onChange={(e)=>setMensagem(e.target.value)}
-
-          />
-
+        />
 
 
 
 
-          <button
+        <button
 
-            onClick={criarAviso}
+          onClick={criarAviso}
 
-            className="bg-blue-600 px-5 py-3 rounded-xl"
+          className="bg-blue-600 px-5 py-3 rounded-xl"
 
-          >
+        >
 
-            📢 Publicar aviso
+          📢 Publicar aviso
 
-          </button>
-
-
-
-        </div>
-
-
-      </AdminOnly>
+        </button>
 
 
 
+      </div>
+
+
+
+
+
+
+      {avisos.length === 0 && (
+
+        <p className="text-zinc-400">
+          Nenhum aviso publicado.
+        </p>
+
+      )}
 
 
 
@@ -250,21 +235,6 @@ export default function AvisosPage() {
 
 
       <div className="space-y-4">
-
-
-
-        {avisos.length === 0 && (
-
-          <p className="text-zinc-400">
-            Nenhum aviso publicado.
-          </p>
-
-        )}
-
-
-
-
-
 
 
         {avisos.map((aviso)=>(
@@ -281,56 +251,35 @@ export default function AvisosPage() {
 
 
             <h2 className="text-xl font-bold">
+
               {aviso.titulo}
+
             </h2>
 
 
 
 
-            <p className="mt-2 text-zinc-300 whitespace-pre-line">
+            <p className="mt-3 whitespace-pre-line text-zinc-300">
+
               {aviso.mensagem}
+
             </p>
 
 
 
 
 
+            <button
 
-            {aviso.criado_em && (
+              onClick={()=>removerAviso(aviso.id)}
 
-              <p className="text-sm text-zinc-500 mt-3">
+              className="bg-red-600 px-4 py-2 rounded mt-4"
 
-                📅 {new Date(aviso.criado_em).toLocaleDateString("pt-BR")}
+            >
 
-              </p>
+              ❌ Remover
 
-            )}
-
-
-
-
-
-
-
-            <AdminOnly>
-
-
-              <button
-
-                onClick={()=>removerAviso(aviso.id)}
-
-                className="bg-red-600 px-4 py-2 rounded mt-4"
-
-              >
-
-                ❌ Remover
-
-              </button>
-
-
-            </AdminOnly>
-
-
+            </button>
 
 
 
@@ -346,7 +295,6 @@ export default function AvisosPage() {
 
 
     </div>
-
 
   );
 

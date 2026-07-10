@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import AdminOnly from "@/components/AdminOnly";
+
 
 type Usuario = {
   id: string;
@@ -13,19 +13,18 @@ type Usuario = {
 };
 
 
-
 export default function EquipePage() {
 
 
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [usuarios,setUsuarios] = useState<Usuario[]>([]);
+
 
   const [nome,setNome] = useState("");
   const [email,setEmail] = useState("");
   const [senha,setSenha] = useState("");
   const [funcao,setFuncao] = useState("");
   const [tipo,setTipo] = useState("membro");
-  const [status] = useState("ativo");
-
+  const [status,setStatus] = useState("ativo");
 
 
 
@@ -46,7 +45,9 @@ export default function EquipePage() {
 
     const resposta = await fetch("/api/usuarios");
 
+
     const dados = await resposta.json();
+
 
     setUsuarios(dados || []);
 
@@ -58,18 +59,17 @@ export default function EquipePage() {
 
 
 
-
   async function criarUsuario(){
-
 
 
     if(!nome || !email || !senha){
 
+
       alert("Preencha nome, email e senha");
+
       return;
 
     }
-
 
 
 
@@ -79,8 +79,11 @@ export default function EquipePage() {
       method:"POST",
 
       headers:{
+
         "Content-Type":"application/json"
+
       },
+
 
       body:JSON.stringify({
 
@@ -93,6 +96,7 @@ export default function EquipePage() {
 
       })
 
+
     });
 
 
@@ -104,11 +108,13 @@ export default function EquipePage() {
 
 
 
-
     if(dados.error){
 
+
       alert(dados.error);
+
       return;
+
 
     }
 
@@ -138,136 +144,141 @@ export default function EquipePage() {
 
 
 
-
   return (
 
+    <div className="p-6 text-white">
 
-    <AdminOnly>
 
+      <h1 className="text-3xl font-bold mb-6">
+        👥 Gerenciar Usuários
+      </h1>
 
-      <div className="p-6 text-white">
 
 
 
-        <h1 className="text-3xl font-bold mb-6">
-          👥 Gerenciar Usuários
-        </h1>
 
 
+      <div className="bg-zinc-900 p-6 rounded-xl space-y-3">
 
 
 
+        <h2 className="text-xl font-bold">
+          Novo usuário
+        </h2>
 
 
-        <div className="bg-zinc-900 p-6 rounded-xl space-y-3">
 
 
+        <input
 
-          <h2 className="text-xl font-bold">
-            Novo usuário
-          </h2>
+          className="w-full p-3 bg-zinc-800 rounded"
 
+          placeholder="Nome"
 
+          value={nome}
 
+          onChange={(e)=>setNome(e.target.value)}
 
+        />
 
 
-          <input
 
-            className="w-full p-3 bg-zinc-800 rounded"
 
-            placeholder="Nome"
 
-            value={nome}
+        <input
 
-            onChange={(e)=>setNome(e.target.value)}
+          className="w-full p-3 bg-zinc-800 rounded"
 
-          />
+          placeholder="Email"
 
+          value={email}
 
+          onChange={(e)=>setEmail(e.target.value)}
 
+        />
 
 
 
-          <input
 
-            className="w-full p-3 bg-zinc-800 rounded"
 
-            placeholder="Email"
+        <input
 
-            value={email}
+          type="password"
 
-            onChange={(e)=>setEmail(e.target.value)}
+          className="w-full p-3 bg-zinc-800 rounded"
 
-          />
+          placeholder="Senha"
 
+          value={senha}
 
+          onChange={(e)=>setSenha(e.target.value)}
 
+        />
 
 
 
-          <input
 
-            type="password"
 
-            className="w-full p-3 bg-zinc-800 rounded"
+        <input
 
-            placeholder="Senha"
+          className="w-full p-3 bg-zinc-800 rounded"
 
-            value={senha}
+          placeholder="Função (Vocal, Teclado...)"
 
-            onChange={(e)=>setSenha(e.target.value)}
+          value={funcao}
 
-          />
+          onChange={(e)=>setFuncao(e.target.value)}
 
+        />
 
 
 
 
 
-          <input
 
-            className="w-full p-3 bg-zinc-800 rounded"
+        <select
 
-            placeholder="Função"
+          className="w-full p-3 bg-zinc-800 rounded"
 
-            value={funcao}
+          value={tipo}
 
-            onChange={(e)=>setFuncao(e.target.value)}
+          onChange={(e)=>setTipo(e.target.value)}
 
-          />
+        >
 
+          <option value="membro">
+            Membro
+          </option>
 
 
+          <option value="admin">
+            Administrador
+          </option>
 
 
+        </select>
 
 
 
-          <select
 
-            className="w-full p-3 bg-zinc-800 rounded"
 
-            value={tipo}
+        <button
 
-            onChange={(e)=>setTipo(e.target.value)}
+          onClick={criarUsuario}
 
-          >
+          className="bg-blue-600 px-5 py-3 rounded"
 
+        >
 
-            <option value="membro">
-              Membro
-            </option>
+          Criar usuário
 
+        </button>
 
 
-            <option value="admin">
-              Administrador
-            </option>
 
+      </div>
 
 
-          </select>
 
 
 
@@ -275,49 +286,33 @@ export default function EquipePage() {
 
 
 
-          <button
+      <div className="mt-6 space-y-4">
 
-            onClick={criarUsuario}
 
-            className="bg-blue-600 px-5 py-3 rounded"
 
-          >
+        <h2 className="text-2xl font-bold">
+          Lista de usuários
+        </h2>
 
-            Criar usuário
 
-          </button>
 
 
+        {usuarios.length === 0 ? (
 
 
+          <div className="bg-zinc-900 p-5 rounded-xl">
 
-        </div>
+            Nenhum usuário cadastrado.
 
+          </div>
 
 
 
+        ) : (
 
 
 
-
-
-        <div className="mt-6 space-y-4">
-
-
-
-          <h2 className="text-2xl font-bold">
-            Lista de usuários
-          </h2>
-
-
-
-
-
-
-
-
-          {usuarios.map((usuario)=>(
-
+          usuarios.map((usuario)=>(
 
 
             <div
@@ -331,9 +326,10 @@ export default function EquipePage() {
 
 
               <h3 className="text-xl font-bold">
-                👤 {usuario.nome}
-              </h3>
 
+                👤 {usuario.nome}
+
+              </h3>
 
 
 
@@ -345,11 +341,9 @@ export default function EquipePage() {
 
 
 
-
               <p>
                 🎤 {usuario.funcao}
               </p>
-
 
 
 
@@ -361,11 +355,9 @@ export default function EquipePage() {
 
 
 
-
               <p>
                 🟢 Status: {usuario.status}
               </p>
-
 
 
 
@@ -374,14 +366,11 @@ export default function EquipePage() {
 
 
 
-          ))}
+          ))
 
 
 
-
-
-
-        </div>
+        )}
 
 
 
@@ -391,8 +380,9 @@ export default function EquipePage() {
 
 
 
-    </AdminOnly>
 
+
+    </div>
 
   );
 
