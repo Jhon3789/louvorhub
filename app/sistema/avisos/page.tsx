@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-
+import AdminOnly from "@/components/AdminOnly";
 
 type Aviso = {
   id: number;
@@ -63,6 +63,7 @@ export default function AvisosPage() {
 
 
 
+
   async function criarAviso() {
 
 
@@ -113,6 +114,7 @@ export default function AvisosPage() {
 
 
 
+
   async function removerAviso(id:number) {
 
 
@@ -139,6 +141,7 @@ export default function AvisosPage() {
 
 
 
+
     if(error){
 
       alert(error.message);
@@ -159,8 +162,8 @@ export default function AvisosPage() {
 
 
 
-  return (
 
+  return (
 
     <div className="p-6 text-white">
 
@@ -173,64 +176,71 @@ export default function AvisosPage() {
 
 
 
-      <div className="bg-zinc-900 p-5 rounded-xl mb-6">
+      <AdminOnly>
 
 
-        <h2 className="font-bold mb-4">
-          Novo aviso
-        </h2>
+        <div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
 
-
-        <input
-
-          className="w-full p-3 bg-zinc-800 rounded mb-3"
-
-          placeholder="Título do aviso"
-
-          value={titulo}
-
-          onChange={(e)=>setTitulo(e.target.value)}
-
-        />
+          <h2 className="font-bold mb-4">
+            Novo aviso
+          </h2>
 
 
 
+          <input
 
+            className="w-full p-3 bg-zinc-800 rounded mb-3"
 
-        <textarea
+            placeholder="Título do aviso"
 
-          className="w-full p-3 bg-zinc-800 rounded mb-3"
+            value={titulo}
 
-          placeholder="Mensagem"
+            onChange={(e)=>setTitulo(e.target.value)}
 
-          rows={4}
-
-          value={mensagem}
-
-          onChange={(e)=>setMensagem(e.target.value)}
-
-        />
+          />
 
 
 
 
 
-        <button
+          <textarea
 
-          onClick={criarAviso}
+            className="w-full p-3 bg-zinc-800 rounded mb-3"
 
-          className="bg-blue-600 px-5 py-3 rounded-xl"
+            placeholder="Mensagem"
 
-        >
+            rows={4}
 
-          📢 Publicar aviso
+            value={mensagem}
 
-        </button>
+            onChange={(e)=>setMensagem(e.target.value)}
+
+          />
 
 
 
-      </div>
+
+
+          <button
+
+            onClick={criarAviso}
+
+            className="bg-blue-600 px-5 py-3 rounded-xl"
+
+          >
+
+            📢 Publicar aviso
+
+          </button>
+
+
+
+        </div>
+
+
+      </AdminOnly>
+
 
 
 
@@ -256,6 +266,7 @@ export default function AvisosPage() {
 
 
 
+
         {avisos.map((aviso)=>(
 
 
@@ -270,19 +281,16 @@ export default function AvisosPage() {
 
 
             <h2 className="text-xl font-bold">
-
               {aviso.titulo}
-
             </h2>
 
 
 
 
             <p className="mt-2 text-zinc-300 whitespace-pre-line">
-
               {aviso.mensagem}
-
             </p>
+
 
 
 
@@ -304,17 +312,25 @@ export default function AvisosPage() {
 
 
 
-            <button
+            <AdminOnly>
 
-              onClick={()=>removerAviso(aviso.id)}
 
-              className="bg-red-600 px-4 py-2 rounded mt-4"
+              <button
 
-            >
+                onClick={()=>removerAviso(aviso.id)}
 
-              ❌ Remover
+                className="bg-red-600 px-4 py-2 rounded mt-4"
 
-            </button>
+              >
+
+                ❌ Remover
+
+              </button>
+
+
+            </AdminOnly>
+
+
 
 
 

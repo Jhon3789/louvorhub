@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AdminOnly from "@/components/AdminOnly";
 
 type Usuario = {
   id: string;
@@ -12,25 +13,36 @@ type Usuario = {
 };
 
 
+
 export default function EquipePage() {
+
 
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
 
-  const [nome, setNome] = useState("");
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [funcao, setFuncao] = useState("");
-  const [tipo, setTipo] = useState("membro");
-  const [status, setStatus] = useState("ativo");
+  const [nome,setNome] = useState("");
+  const [email,setEmail] = useState("");
+  const [senha,setSenha] = useState("");
+  const [funcao,setFuncao] = useState("");
+  const [tipo,setTipo] = useState("membro");
+  const [status] = useState("ativo");
 
 
-  useEffect(() => {
+
+
+
+  useEffect(()=>{
+
     carregarUsuarios();
-  }, []);
+
+  },[]);
+
+
+
 
 
 
   async function carregarUsuarios(){
+
 
     const resposta = await fetch("/api/usuarios");
 
@@ -38,12 +50,18 @@ export default function EquipePage() {
 
     setUsuarios(dados || []);
 
+
   }
 
 
 
 
+
+
+
   async function criarUsuario(){
+
+
 
     if(!nome || !email || !senha){
 
@@ -51,6 +69,9 @@ export default function EquipePage() {
       return;
 
     }
+
+
+
 
 
     const resposta = await fetch("/api/usuarios",{
@@ -76,7 +97,12 @@ export default function EquipePage() {
 
 
 
+
+
     const dados = await resposta.json();
+
+
+
 
 
     if(dados.error){
@@ -85,6 +111,8 @@ export default function EquipePage() {
       return;
 
     }
+
+
 
 
 
@@ -97,6 +125,8 @@ export default function EquipePage() {
     setSenha("");
     setFuncao("");
 
+
+
     carregarUsuarios();
 
 
@@ -104,108 +134,208 @@ export default function EquipePage() {
 
 
 
+
+
+
+
+
   return (
 
-    <div className="p-6 text-white">
+
+    <AdminOnly>
 
 
-      <h1 className="text-3xl font-bold mb-6">
-        👥 Gerenciar Usuários
-      </h1>
+      <div className="p-6 text-white">
 
 
 
-      <div className="bg-zinc-900 p-6 rounded-xl space-y-3">
+        <h1 className="text-3xl font-bold mb-6">
+          👥 Gerenciar Usuários
+        </h1>
 
 
-        <h2 className="text-xl font-bold">
-          Novo usuário
-        </h2>
 
 
-        <input
-          className="w-full p-3 bg-zinc-800 rounded"
-          placeholder="Nome"
-          value={nome}
-          onChange={(e)=>setNome(e.target.value)}
-        />
 
 
-        <input
-          className="w-full p-3 bg-zinc-800 rounded"
-          placeholder="Email"
-          value={email}
-          onChange={(e)=>setEmail(e.target.value)}
-        />
+
+        <div className="bg-zinc-900 p-6 rounded-xl space-y-3">
 
 
-        <input
-          type="password"
-          className="w-full p-3 bg-zinc-800 rounded"
-          placeholder="Senha"
-          value={senha}
-          onChange={(e)=>setSenha(e.target.value)}
-        />
+
+          <h2 className="text-xl font-bold">
+            Novo usuário
+          </h2>
 
 
-        <input
-          className="w-full p-3 bg-zinc-800 rounded"
-          placeholder="Função (Vocal, Teclado...)"
-          value={funcao}
-          onChange={(e)=>setFuncao(e.target.value)}
-        />
 
 
-        <select
-          className="w-full p-3 bg-zinc-800 rounded"
-          value={tipo}
-          onChange={(e)=>setTipo(e.target.value)}
-        >
-
-          <option value="membro">
-            Membro
-          </option>
-
-          <option value="admin">
-            Administrador
-          </option>
-
-        </select>
 
 
-        <button
-          onClick={criarUsuario}
-          className="bg-blue-600 px-5 py-3 rounded"
-        >
-          Criar usuário
-        </button>
+          <input
+
+            className="w-full p-3 bg-zinc-800 rounded"
+
+            placeholder="Nome"
+
+            value={nome}
+
+            onChange={(e)=>setNome(e.target.value)}
+
+          />
 
 
-      </div>      <div className="mt-6 space-y-4">
-
-        <h2 className="text-2xl font-bold">
-          Lista de usuários
-        </h2>
 
 
-        {usuarios.length === 0 ? (
 
-          <div className="bg-zinc-900 p-5 rounded-xl">
-            Nenhum usuário cadastrado.
-          </div>
 
-        ) : (
+          <input
 
-          usuarios.map((usuario)=>(
+            className="w-full p-3 bg-zinc-800 rounded"
+
+            placeholder="Email"
+
+            value={email}
+
+            onChange={(e)=>setEmail(e.target.value)}
+
+          />
+
+
+
+
+
+
+          <input
+
+            type="password"
+
+            className="w-full p-3 bg-zinc-800 rounded"
+
+            placeholder="Senha"
+
+            value={senha}
+
+            onChange={(e)=>setSenha(e.target.value)}
+
+          />
+
+
+
+
+
+
+          <input
+
+            className="w-full p-3 bg-zinc-800 rounded"
+
+            placeholder="Função"
+
+            value={funcao}
+
+            onChange={(e)=>setFuncao(e.target.value)}
+
+          />
+
+
+
+
+
+
+
+
+          <select
+
+            className="w-full p-3 bg-zinc-800 rounded"
+
+            value={tipo}
+
+            onChange={(e)=>setTipo(e.target.value)}
+
+          >
+
+
+            <option value="membro">
+              Membro
+            </option>
+
+
+
+            <option value="admin">
+              Administrador
+            </option>
+
+
+
+          </select>
+
+
+
+
+
+
+
+          <button
+
+            onClick={criarUsuario}
+
+            className="bg-blue-600 px-5 py-3 rounded"
+
+          >
+
+            Criar usuário
+
+          </button>
+
+
+
+
+
+        </div>
+
+
+
+
+
+
+
+
+
+        <div className="mt-6 space-y-4">
+
+
+
+          <h2 className="text-2xl font-bold">
+            Lista de usuários
+          </h2>
+
+
+
+
+
+
+
+
+          {usuarios.map((usuario)=>(
+
+
 
             <div
+
               key={usuario.id}
+
               className="bg-zinc-900 p-5 rounded-xl"
+
             >
+
+
 
               <h3 className="text-xl font-bold">
                 👤 {usuario.nome}
               </h3>
+
+
+
 
 
               <p>
@@ -213,9 +343,15 @@ export default function EquipePage() {
               </p>
 
 
+
+
+
               <p>
                 🎤 {usuario.funcao}
               </p>
+
+
+
 
 
               <p>
@@ -223,23 +359,42 @@ export default function EquipePage() {
               </p>
 
 
+
+
+
               <p>
                 🟢 Status: {usuario.status}
               </p>
 
 
+
+
+
             </div>
 
-          ))
 
-        )}
+
+          ))}
+
+
+
+
+
+
+        </div>
+
+
+
 
 
       </div>
 
 
-    </div>
+
+    </AdminOnly>
+
 
   );
+
 
 }

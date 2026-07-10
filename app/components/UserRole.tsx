@@ -18,22 +18,18 @@ buscarUsuario();
 
 
 
-
 async function buscarUsuario(){
-
 
 const {
 data:{user}
 }=await supabase.auth.getUser();
 
 
-
 if(!user) return;
 
 
 
-
-const {data}=await supabase
+const {data,error}=await supabase
 .from("membros")
 .select("*")
 .eq("email",user.email)
@@ -41,11 +37,20 @@ const {data}=await supabase
 
 
 
+if(error){
+
+console.log(error);
+return;
+
+}
+
+
+
 setUsuario(data);
 
 
-
 }
+
 
 
 
