@@ -25,14 +25,11 @@ export default function SistemaLayout({
 
 
 
-
   useEffect(() => {
 
     carregarUsuario();
 
   }, []);
-
-
 
 
 
@@ -49,7 +46,6 @@ export default function SistemaLayout({
 
 
 
-
     if (!user) {
 
       router.push("/login");
@@ -59,10 +55,7 @@ export default function SistemaLayout({
 
 
 
-
-
     setUsuario(user);
-
 
 
 
@@ -77,8 +70,6 @@ export default function SistemaLayout({
       .eq("email", user.email)
 
       .single();
-
-
 
 
 
@@ -117,11 +108,7 @@ export default function SistemaLayout({
 
 
 
-
-
       <aside className="w-64 bg-zinc-900 p-5">
-
-
 
 
 
@@ -135,48 +122,31 @@ export default function SistemaLayout({
 
 
 
-
-
         {usuario && (
 
           <div className="text-sm text-zinc-400 mb-6">
-
 
             <p>
               📧 {usuario.email}
             </p>
 
 
-
-
-
             {perfil && (
 
               <p className="mt-2">
 
-
                 {perfil.tipo === "admin"
-
                   ? "👑 Administrador"
-
                   : "👤 Membro"
-
                 }
-
 
               </p>
 
             )}
 
-
-
-
-
           </div>
 
-
         )}
-
 
 
 
@@ -191,107 +161,77 @@ export default function SistemaLayout({
 
 
           <Link
-
             href="/sistema"
-
             className="block bg-zinc-800 p-3 rounded"
-
           >
-
             🏠 Dashboard
-
           </Link>
 
 
 
 
 
-
-
           <Link
-
             href="/sistema/louvores"
-
             className="block bg-zinc-800 p-3 rounded"
-
           >
-
             🎵 Louvores
-
           </Link>
 
 
 
 
 
-
-
           <Link
-
             href="/sistema/cultos"
-
             className="block bg-zinc-800 p-3 rounded"
-
           >
-
             ⛪ Cultos
-
           </Link>
 
 
 
 
 
-
-
           <Link
-
             href="/sistema/escala"
-
             className="block bg-zinc-800 p-3 rounded"
-
           >
-
             👥 Escala
-
           </Link>
 
 
 
 
 
-
-
           <Link
-
             href="/sistema/avisos"
-
             className="block bg-zinc-800 p-3 rounded"
-
           >
-
             📢 Avisos
-
           </Link>
-
-
 
 
 
 
 
           <Link
-
             href="/sistema/equipe"
-
             className="block bg-zinc-800 p-3 rounded"
-
           >
-
             👤 Equipe
-
           </Link>
 
+
+
+
+
+          <Link
+            href="/sistema/sugestoes"
+            className="block bg-zinc-800 p-3 rounded"
+          >
+            🎵 Sugestões
+          </Link>
 
 
 
@@ -319,11 +259,7 @@ export default function SistemaLayout({
 
 
 
-
-
       </aside>
-
-
 
 
 
@@ -332,9 +268,7 @@ export default function SistemaLayout({
 
       <main className="flex-1 p-6">
 
-
         {children}
-
 
       </main>
 
