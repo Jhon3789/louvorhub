@@ -14,7 +14,6 @@ type Sugestao = {
 };
 
 
-
 export default function SugestoesPage(){
 
 
@@ -32,11 +31,11 @@ export default function SugestoesPage(){
 
   useEffect(()=>{
 
-    carregar();
-
+    carregarSugestoes();
     verificarAdmin();
 
   },[]);
+
 
 
 
@@ -47,7 +46,6 @@ export default function SugestoesPage(){
 
 
     const {
-
       data:{user}
 
     } = await supabase.auth.getUser();
@@ -58,15 +56,24 @@ export default function SugestoesPage(){
 
 
 
-    const {data} = await supabase
+    const {data,error} = await supabase
 
       .from("usuarios")
 
-      .select("tipo")
+      .select("*")
 
       .eq("email",user.email)
 
       .single();
+
+
+
+
+    console.log("USUARIO", user.email);
+    console.log("PERFIL", data);
+    console.log("ERRO", error);
+
+
 
 
 
@@ -77,6 +84,7 @@ export default function SugestoesPage(){
     }
 
 
+
   }
 
 
@@ -85,10 +93,11 @@ export default function SugestoesPage(){
 
 
 
-  async function carregar(){
+
+  async function carregarSugestoes(){
 
 
-    const {data} = await supabase
+    const {data,error} = await supabase
 
       .from("sugestoes")
 
@@ -98,7 +107,17 @@ export default function SugestoesPage(){
 
 
 
+    if(error){
+
+      console.log(error);
+      return;
+
+    }
+
+
+
     setSugestoes(data || []);
+
 
 
   }
@@ -115,14 +134,13 @@ export default function SugestoesPage(){
     if(!nome || !artista){
 
       alert("Preencha nome e artista");
-
       return;
 
     }
 
 
 
-    await supabase
+    const {error} = await supabase
 
       .from("sugestoes")
 
@@ -138,11 +156,23 @@ export default function SugestoesPage(){
 
 
 
+
+    if(error){
+
+      alert(error.message);
+      return;
+
+    }
+
+
+
+
     setNome("");
     setArtista("");
     setLink("");
 
-    carregar();
+    carregarSugestoes();
+
 
 
   }
@@ -153,11 +183,11 @@ export default function SugestoesPage(){
 
 
 
-  async function votar(id:number, votos:number){
+  async function votar(id:number,votos:number){
 
 
 
-    await supabase
+    const {error} = await supabase
 
       .from("sugestoes")
 
@@ -171,7 +201,18 @@ export default function SugestoesPage(){
 
 
 
-    carregar();
+
+
+    if(error){
+
+      alert(error.message);
+      return;
+
+    }
+
+
+
+    carregarSugestoes();
 
 
   }
@@ -186,7 +227,7 @@ export default function SugestoesPage(){
 
 
 
-    await supabase
+    const {error:updateError} = await supabase
 
       .from("sugestoes")
 
@@ -201,9 +242,20 @@ export default function SugestoesPage(){
 
 
 
+    if(updateError){
+
+      alert(updateError.message);
+      return;
+
+    }
 
 
-    await supabase
+
+
+
+
+
+    const {error:louvorError} = await supabase
 
       .from("louvores")
 
@@ -223,10 +275,23 @@ export default function SugestoesPage(){
 
 
 
-    carregar();
+
+
+    if(louvorError){
+
+      alert(louvorError.message);
+      return;
+
+    }
+
+
+
+    carregarSugestoes();
+
 
 
   }
+
 
 
 
@@ -240,13 +305,12 @@ export default function SugestoesPage(){
     <div className="text-white">
 
 
+
       <h1 className="text-3xl font-bold mb-6">
 
         🎵 Sugestões de Louvores
 
       </h1>
-
-
 
 
 
@@ -299,7 +363,7 @@ export default function SugestoesPage(){
 
         <input
 
-          className="w-full bg-zinc-800 p-3 rounded mb-3"
+          className="w-full bg-zinc_800 p-3 rounded mb-3"
 
           placeholder="Link"
 
@@ -321,7 +385,7 @@ export default function SugestoesPage(){
 
         >
 
-          Enviar sugestão
+          📤 Enviar sugestão
 
         </button>
 
@@ -339,94 +403,93 @@ export default function SugestoesPage(){
 
 
 
-      {sugestoes.map((s)=>(
+        {sugestoes.map((s)=>(
 
 
-        <div
+          <div
 
-          key={s.id}
+            key={s.id}
 
-          className="bg-zinc-900 p-5 rounded-xl"
-
-        >
-
-
-
-          <h2 className="text-xl font-bold">
-
-            {s.nome}
-
-          </h2>
-
-
-
-          <p>
-
-            {s.artista}
-
-          </p>
-
-
-
-          <p>
-
-            👥 Votos: {s.votos}
-
-          </p>
-
-
-
-          <p>
-
-            Status: {s.status}
-
-          </p>
-
-
-
-
-
-          <button
-
-            onClick={()=>votar(s.id,s.votos)}
-
-            className="bg-green-600 px-4 py-2 rounded mt-3"
+            className="bg-zinc-900 p-5 rounded-xl"
 
           >
 
-            👍 Votar
 
-          </button>
+            <h2 className="text-xl font-bold">
+
+              {s.nome}
+
+            </h2>
+
+
+            <p>
+
+              {s.artista}
+
+            </p>
+
+
+            <p>
+
+              👥 Votos: {s.votos}
+
+            </p>
+
+
+            <p>
+
+              Status: {s.status}
+
+            </p>
 
 
 
 
-
-
-          {admin && s.status !== "aprovada" && (
 
             <button
 
-              onClick={()=>aprovar(s)}
+              onClick={()=>votar(s.id,s.votos)}
 
-              className="bg-blue-600 px-4 py-2 rounded mt-3 ml-3"
+              className="bg-green-600 px-4 py-2 rounded mt-4"
 
             >
 
-              ✅ Aprovar
+              👍 Votar
 
             </button>
 
-          )}
 
 
 
 
 
-        </div>
+
+            {admin && s.status !== "aprovada" && (
 
 
-      ))}
+              <button
+
+                onClick={()=>aprovar(s)}
+
+                className="bg-blue-600 px-4 py-2 rounded mt-4 ml-3"
+
+              >
+
+                ✅ Aprovar
+
+              </button>
+
+
+            )}
+
+
+
+
+
+          </div>
+
+
+        ))}
 
 
 

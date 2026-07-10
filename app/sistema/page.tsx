@@ -9,6 +9,23 @@ type Culto = {
   nome:string;
   data:string;
   horario:string;
+  status:string;
+};
+
+
+type Louvor = {
+  id:number;
+  nome:string;
+  artista:string;
+  tom:string;
+};
+
+
+type Escala = {
+  id:number;
+  membro:string;
+  funcao:string;
+  confirmado:boolean;
 };
 
 
@@ -16,7 +33,6 @@ type Aviso = {
   id:number;
   titulo:string;
   mensagem:string;
-  criado_em:string;
 };
 
 
@@ -24,12 +40,15 @@ type Aviso = {
 export default function DashboardPage(){
 
 
-  const [louvores,setLouvores] = useState(0);
-  const [usuarios,setUsuarios] = useState(0);
-  const [avisosTotal,setAvisosTotal] = useState(0);
+  const [culto,setCulto] = useState<Culto | null>(null);
 
-  const [cultos,setCultos] = useState<Culto[]>([]);
+  const [louvores,setLouvores] = useState<Louvor[]>([]);
+
+  const [escala,setEscala] = useState<Escala[]>([]);
+
   const [avisos,setAvisos] = useState<Aviso[]>([]);
+
+  const [totalLouvores,setTotalLouvores] = useState(0);
 
 
 
@@ -51,38 +70,7 @@ export default function DashboardPage(){
 
 
 
-    const {count:totalLouvores} = await supabase
-
-      .from("louvores")
-
-      .select("*",{count:"exact",head:true});
-
-
-
-
-    const {count:totalUsuarios} = await supabase
-
-      .from("usuarios")
-
-      .select("*",{count:"exact",head:true});
-
-
-
-
-
-    const {count:totalAvisos} = await supabase
-
-      .from("avisos")
-
-      .select("*",{count:"exact",head:true});
-
-
-
-
-
-
-
-    const {data:listaCultos} = await supabase
+    const {data:proximoCulto} = await supabase
 
       .from("cultos")
 
@@ -90,7 +78,82 @@ export default function DashboardPage(){
 
       .order("data",{ascending:true})
 
-      .limit(3);
+      .limit(1)
+
+      .single();
+
+
+
+
+
+    if(proximoCulto){
+
+
+      setCulto(proximoCulto);
+
+
+
+
+
+      const {data:ligacoes} = await supabase
+
+        .from("culto_louvores")
+
+        .select("louvor_id")
+
+        .eq("culto_id",proximoCulto.id);
+
+
+
+
+
+      if(ligacoes && ligacoes.length > 0){
+
+
+        const ids = ligacoes.map((item:any)=>item.louvor_id);
+
+
+
+
+        const {data:listaLouvores} = await supabase
+
+          .from("louvores")
+
+          .select("*")
+
+          .in("id",ids);
+
+
+
+
+        setLouvores(listaLouvores || []);
+
+
+      }
+
+
+
+
+
+
+      const {data:listaEscala} = await supabase
+
+        .from("escala")
+
+        .select("*")
+
+        .eq("culto_id",proximoCulto.id);
+
+
+
+
+      setEscala(listaEscala || []);
+
+
+
+    }
+
+
 
 
 
@@ -109,20 +172,23 @@ export default function DashboardPage(){
 
 
 
-
-
-
-
-    setLouvores(totalLouvores || 0);
-
-    setUsuarios(totalUsuarios || 0);
-
-    setAvisosTotal(totalAvisos || 0);
-
-
-    setCultos(listaCultos || []);
-
     setAvisos(listaAvisos || []);
+
+
+
+
+
+
+
+    const {count} = await supabase
+
+      .from("louvores")
+
+      .select("*",{count:"exact",head:true});
+
+
+
+    setTotalLouvores(count || 0);
 
 
 
@@ -159,53 +225,55 @@ export default function DashboardPage(){
 
 
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+
+      <div className="bg-zinc-900 p-6 rounded-xl mb-6">
+
+
+        <h2 className="text-2xl font-bold mb-4">
+
+          ⛪ Próximo Culto
+
+        </h2>
 
 
 
-        <div className="bg-zinc-900 p-6 rounded-xl">
 
-          🎵 Louvores
+        {culto ? (
 
-          <p className="text-4xl font-bold mt-2">
+          <>
 
-            {louvores}
+            <h3 className="text-xl font-bold">
+
+              {culto.nome}
+
+            </h3>
+
+
+            <p>
+              📅 {culto.data}
+            </p>
+
+
+            <p>
+              🕒 {culto.horario}
+            </p>
+
+
+            <p>
+              📌 {culto.status}
+            </p>
+
+          </>
+
+        ) : (
+
+          <p className="text-zinc-400">
+
+            Nenhum culto encontrado.
 
           </p>
 
-        </div>
-
-
-
-
-
-        <div className="bg-zinc-900 p-6 rounded-xl">
-
-          👥 Integrantes
-
-          <p className="text-4xl font-bold mt-2">
-
-            {usuarios}
-
-          </p>
-
-        </div>
-
-
-
-
-
-        <div className="bg-zinc-900 p-6 rounded-xl">
-
-          📢 Avisos
-
-          <p className="text-4xl font-bold mt-2">
-
-            {avisosTotal}
-
-          </p>
-
-        </div>
+        )}
 
 
 
@@ -224,24 +292,22 @@ export default function DashboardPage(){
 
 
 
-
         <div className="bg-zinc-900 p-5 rounded-xl">
 
 
           <h2 className="text-xl font-bold mb-4">
 
-            ⛪ Próximos Cultos
+            🎵 Louvores do Culto
 
           </h2>
 
 
 
-
-          {cultos.length === 0 && (
+          {louvores.length === 0 && (
 
             <p className="text-zinc-400">
 
-              Nenhum culto cadastrado.
+              Nenhum louvor selecionado.
 
             </p>
 
@@ -250,50 +316,28 @@ export default function DashboardPage(){
 
 
 
+          {louvores.map((l)=>(
 
+            <div key={l.id} className="mb-3">
 
-          {cultos.map((culto)=>(
+              🎶 {l.nome}
 
-            <div
+              <br />
 
-              key={culto.id}
+              <span className="text-zinc-400">
 
-              className="border-b border-zinc-700 py-3"
+                {l.artista} - Tom {l.tom}
 
-            >
-
-              <p className="font-bold">
-
-                {culto.nome}
-
-              </p>
-
-
-              <p>
-
-                📅 {culto.data}
-
-              </p>
-
-
-              <p>
-
-                🕒 {culto.horario}
-
-              </p>
+              </span>
 
 
             </div>
-
 
           ))}
 
 
 
-
-
         </div>
-
 
 
 
@@ -307,19 +351,17 @@ export default function DashboardPage(){
 
           <h2 className="text-xl font-bold mb-4">
 
-            📢 Últimos Avisos
+            👥 Escala
 
           </h2>
 
 
 
-
-
-          {avisos.length === 0 && (
+          {escala.length === 0 && (
 
             <p className="text-zinc-400">
 
-              Nenhum aviso publicado.
+              Nenhuma escala encontrada.
 
             </p>
 
@@ -329,29 +371,20 @@ export default function DashboardPage(){
 
 
 
-
-          {avisos.map((aviso)=>(
-
-            <div
-
-              key={aviso.id}
-
-              className="border-b border-zinc-700 py-3"
-
-            >
-
-              <p className="font-bold">
-
-                {aviso.titulo}
-
-              </p>
+          {escala.map((p)=>(
 
 
-              <p className="text-zinc-300">
+            <div key={p.id} className="mb-3">
 
-                {aviso.mensagem}
+              👤 {p.membro}
 
-              </p>
+              {" - "}
+
+              {p.funcao}
+
+              {" "}
+
+              {p.confirmado ? "✅" : "⏳"}
 
 
             </div>
@@ -364,13 +397,74 @@ export default function DashboardPage(){
 
 
         </div>
-
 
 
 
 
 
       </div>
+
+
+
+
+
+
+
+
+
+      <div className="bg-zinc-900 p-5 rounded-xl mt-6">
+
+
+        <h2 className="text-xl font-bold mb-4">
+
+          📢 Últimos Avisos
+
+        </h2>
+
+
+
+
+        {avisos.map((a)=>(
+
+          <div key={a.id} className="mb-3">
+
+            <b>{a.titulo}</b>
+
+            <p className="text-zinc-300">
+
+              {a.mensagem}
+
+            </p>
+
+          </div>
+
+
+        ))}
+
+
+
+      </div>
+
+
+
+
+
+
+
+
+      <div className="mt-6 bg-zinc-900 p-5 rounded-xl">
+
+        🎵 Total de louvores cadastrados:
+
+        <span className="font-bold ml-2">
+
+          {totalLouvores}
+
+        </span>
+
+      </div>
+
+
 
 
 
