@@ -1,317 +1,212 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 
 type Aviso = {
-  id:number;
-  titulo:string;
-  mensagem:string;
-  criado_em:string;
+  id: number;
+  titulo: string;
+  mensagem: string;
 };
 
 
+export default function SistemaPage() {
 
-export default function AvisosPage(){
 
+  const [usuario, setUsuario] = useState<any>(null);
+  const [avisos, setAvisos] = useState<Aviso[]>([]);
 
-const [avisos,setAvisos] = useState<Aviso[]>([]);
 
 
-const [titulo,setTitulo] = useState("");
-const [mensagem,setMensagem] = useState("");
+  useEffect(() => {
 
+    carregarUsuario();
+    carregarAvisos();
 
+  }, []);
 
 
-useEffect(()=>{
 
-carregarAvisos();
 
-},[]);
+  async function carregarUsuario(){
 
+    const {
+      data:{user}
+    } = await supabase.auth.getUser();
 
 
+    setUsuario(user);
 
+  }
 
 
 
-async function carregarAvisos(){
 
 
-const {data,error}=await supabase
-.from("avisos")
-.select("*")
-.order("id",{ascending:false});
+  async function carregarAvisos(){
 
 
+    const {data,error}= await supabase
+      .from("avisos")
+      .select("*")
+      .order("id",{ascending:false})
+      .limit(5);
 
-if(error){
 
-console.log(error);
-return;
 
-}
+    if(error){
 
+      console.log(error);
+      return;
 
+    }
 
-setAvisos(data || []);
 
 
-}
+    setAvisos(data || []);
 
 
+  }
 
 
 
 
 
 
+  return (
 
-async function criarAviso(){
+    <div className="text-white space-y-6">
 
 
-if(!titulo || !mensagem){
+      <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800">
 
-alert("Preencha todos os campos");
-return;
 
-}
+        <h1 className="text-3xl font-bold">
+          🙏 Bem-vindo ao LouvorHub
+        </h1>
 
 
+        <p className="text-zinc-400 mt-2">
+          Organização do Ministério de Louvor
+        </p>
 
-const {error}=await supabase
-.from("avisos")
-.insert({
 
-titulo,
-mensagem
 
-});
+        {usuario && (
 
+          <p className="mt-4 text-sm text-blue-400">
+            Logado como: {usuario.email}
+          </p>
 
+        )}
 
-if(error){
 
-alert(error.message);
-return;
+      </div>
 
-}
 
 
 
-setTitulo("");
-setMensagem("");
 
+      <div className="grid md:grid-cols-3 gap-5">
 
 
-carregarAvisos();
+        <div className="bg-zinc-900 p-6 rounded-xl">
+          <h2 className="text-xl font-bold">
+            🎵 Louvores
+          </h2>
+          <p className="text-zinc-400 mt-2">
+            Letras, cifras e tons.
+          </p>
+        </div>
 
 
-}
 
+        <div className="bg-zinc-900 p-6 rounded-xl">
+          <h2 className="text-xl font-bold">
+            ⛪ Cultos
+          </h2>
+          <p className="text-zinc-400 mt-2">
+            Organização dos cultos.
+          </p>
+        </div>
 
 
 
+        <div className="bg-zinc-900 p-6 rounded-xl">
+          <h2 className="text-xl font-bold">
+            👥 Escala
+          </h2>
+          <p className="text-zinc-400 mt-2">
+            Equipe do ministério.
+          </p>
+        </div>
 
 
+      </div>
 
 
 
-async function removerAviso(id:number){
 
 
-const confirmar = window.confirm(
-"Remover este aviso?"
-);
 
 
+      <div className="bg-blue-950 p-6 rounded-2xl border border-blue-900">
 
-if(!confirmar){
 
-return;
+        <h2 className="text-2xl font-bold mb-4">
+          📢 Avisos do Ministério
+        </h2>
 
-}
 
 
+        {avisos.length === 0 ? (
 
-const {error}=await supabase
-.from("avisos")
-.delete()
-.eq("id",id);
+          <p className="text-zinc-400">
+            Nenhum aviso publicado.
+          </p>
 
+        ) : (
 
 
-if(error){
+          <div className="space-y-4">
 
-alert(error.message);
-return;
 
-}
+            {avisos.map((aviso)=>(
 
+              <div 
+                key={aviso.id}
+                className="bg-zinc-900 p-4 rounded-xl"
+              >
 
+                <h3 className="font-bold text-lg">
+                  {aviso.titulo}
+                </h3>
 
-carregarAvisos();
 
+                <p className="text-zinc-300 mt-2">
+                  {aviso.mensagem}
+                </p>
 
-}
 
+              </div>
 
+            ))}
 
 
+          </div>
 
 
+        )}
 
 
+      </div>
 
 
-return (
 
-<div className="p-6 text-white">
 
+    </div>
 
-<h1 className="text-3xl font-bold mb-6">
-📢 Avisos do Ministério
-</h1>
-
-
-
-
-
-
-<div className="bg-zinc-900 p-5 rounded-xl mb-6">
-
-
-
-<input
-
-className="w-full p-3 bg-zinc-800 rounded mb-3"
-
-placeholder="Título do aviso"
-
-value={titulo}
-
-onChange={(e)=>setTitulo(e.target.value)}
-
-/>
-
-
-
-
-
-<textarea
-
-className="w-full p-3 bg-zinc-800 rounded mb-3"
-
-placeholder="Mensagem"
-
-value={mensagem}
-
-onChange={(e)=>setMensagem(e.target.value)}
-
-rows={4}
-
-/>
-
-
-
-
-
-
-<button
-
-onClick={criarAviso}
-
-className="bg-blue-600 px-5 py-3 rounded"
-
->
-
-Criar aviso
-
-</button>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<div className="space-y-4">
-
-
-
-{avisos.map((aviso)=>(
-
-
-<div
-
-key={aviso.id}
-
-className="bg-zinc-900 p-5 rounded-xl"
-
->
-
-
-
-
-<h2 className="text-xl font-bold">
-
-{aviso.titulo}
-
-</h2>
-
-
-
-
-
-<p className="mt-2 text-zinc-300">
-
-{aviso.mensagem}
-
-</p>
-
-
-
-
-
-
-<button
-
-onClick={()=>removerAviso(aviso.id)}
-
-className="bg-red-600 px-4 py-2 rounded mt-4"
-
->
-
-❌ Remover
-
-</button>
-
-
-
-
-
-</div>
-
-
-))}
-
-
-
-</div>
-
-
-
-</div>
-
-);
-
+  );
 
 }
