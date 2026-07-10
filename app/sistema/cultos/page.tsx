@@ -24,7 +24,6 @@ type Equipe = {
 };
 
 
-
 type Culto = {
   id:number;
   nome:string;
@@ -51,14 +50,12 @@ const [horario,setHorario] = useState("");
 
 
 
-
 useEffect(()=>{
 
 carregarLouvores();
 carregarCultos();
 
 },[]);
-
 
 
 
@@ -90,7 +87,6 @@ setLouvores(data || []);
 
 
 
-
 async function buscarEquipe(cultoId:number){
 
 
@@ -100,9 +96,9 @@ const {data,error}=await supabase
  id,
  confirmado,
  membros(
-   id,
-   nome,
-   funcao
+ id,
+ nome,
+ funcao
  )
 `)
 .eq("culto_id",cultoId);
@@ -146,7 +142,6 @@ return;
 
 
 
-
 const lista = await Promise.all(
 
 (data || []).map(async(culto:any)=>{
@@ -159,22 +154,17 @@ const {data:repertorio}=await supabase
 
 
 
-
 return {
 
 ...culto,
 
-
 repertorio:
 repertorio?.map((item:any)=>item.louvores) || [],
-
 
 equipe:
 await buscarEquipe(culto.id)
 
-
 };
-
 
 
 })
@@ -187,6 +177,11 @@ setCultos(lista);
 
 
 }
+
+
+
+
+
 
 
 
@@ -245,6 +240,63 @@ setData("");
 setHorario("");
 
 }
+async function removerCulto(id:number){
+
+
+const confirmar = window.confirm(
+"Tem certeza que deseja remover este culto?"
+);
+
+
+
+if(!confirmar){
+
+return;
+
+}
+
+
+
+// remove repertório do culto
+await supabase
+.from("culto_louvores")
+.delete()
+.eq("culto_id",id);
+
+
+
+
+// remove escala do culto
+await supabase
+.from("escala")
+.delete()
+.eq("culto_id",id);
+
+
+
+
+// remove culto
+const {error}=await supabase
+.from("cultos")
+.delete()
+.eq("id",id);
+
+
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+
+
+carregarCultos();
+
+
+}
+
 
 
 
@@ -284,6 +336,7 @@ carregarCultos();
 
 
 }
+
 
 
 
@@ -336,7 +389,6 @@ return (
 <h1 className="text-3xl font-bold mb-6">
 ⛪ Cultos
 </h1>
-
 
 
 
@@ -406,11 +458,9 @@ className="bg-zinc-900 p-5 rounded-xl mb-6"
 </h2>
 
 
-
 <p>
 📅 {culto.data} - ⏰ {culto.horario}
 </p>
-
 
 
 <p>
@@ -421,11 +471,25 @@ Status: {culto.status}
 
 
 
+<button
+onClick={()=>removerCulto(culto.id)}
+className="bg-red-600 px-4 py-2 rounded mt-4"
+>
+
+❌ Remover culto
+
+</button>
+
+
+
+
+
 
 
 <h3 className="font-bold mt-5">
 🎵 Repertório
 </h3>
+
 
 
 
@@ -477,9 +541,11 @@ className="text-red-500 mt-2"
 
 
 
+
 <h3 className="font-bold mt-6">
 👥 Escala
 </h3>
+
 
 
 
@@ -503,11 +569,11 @@ className="bg-zinc-800 p-3 rounded mt-2"
 </p>
 
 
-
 <p>
 {e.confirmado
 ? "✅ Confirmado"
 : "⏳ Aguardando"}
+
 </p>
 
 
@@ -515,6 +581,7 @@ className="bg-zinc-800 p-3 rounded mt-2"
 
 
 ))}
+
 
 
 
@@ -550,7 +617,6 @@ className="block w-full text-left bg-zinc-800 p-3 rounded mt-2"
 
 
 ))}
-
 
 
 

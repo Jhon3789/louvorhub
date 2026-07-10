@@ -8,6 +8,7 @@ type Membro = {
   id:number;
   nome:string;
   funcao:string;
+  status:string;
 };
 
 
@@ -16,7 +17,6 @@ type Culto = {
   nome:string;
   data:string;
   horario:string;
-  repertorio:any[];
 };
 
 
@@ -40,9 +40,12 @@ const [cultos,setCultos]=useState<Culto[]>([]);
 const [escala,setEscala]=useState<Escala[]>([]);
 
 
+
+const [nome,setNome]=useState("");
+const [funcao,setFuncao]=useState("");
+
 const [cultoId,setCultoId]=useState("");
 const [membroId,setMembroId]=useState("");
-
 
 
 
@@ -60,30 +63,18 @@ carregarEscala();
 
 
 
-
 async function carregarMembros(){
 
 
-const {data,error}=await supabase
+const {data}=await supabase
 .from("membros")
 .select("*")
 .order("nome");
 
 
-if(error){
-
-console.log(error);
-return;
-
-}
-
-
 setMembros(data || []);
 
-
 }
-
-
 
 
 
@@ -93,54 +84,15 @@ setMembros(data || []);
 async function carregarCultos(){
 
 
-const {data,error}=await supabase
+const {data}=await supabase
 .from("cultos")
 .select("*")
 .order("id");
 
 
-if(error){
-
-console.log(error);
-return;
+setCultos(data || []);
 
 }
-
-
-const lista = await Promise.all(
-
-(data || []).map(async(culto:any)=>{
-
-
-const {data:repertorio}=await supabase
-.from("culto_louvores")
-.select("louvores(*)")
-.eq("culto_id",culto.id);
-
-
-
-return {
-
-...culto,
-
-repertorio:
-repertorio?.map((r:any)=>r.louvores) || []
-
-};
-
-
-})
-
-);
-
-
-
-setCultos(lista);
-
-
-}
-
-
 
 
 
@@ -154,11 +106,11 @@ async function carregarEscala(){
 const {data,error}=await supabase
 .from("escala")
 .select(`
- *,
- membros(*),
- cultos(*)
+*,
+membros(*),
+cultos(*)
 `)
-.order("culto_id");
+.order("id");
 
 
 
@@ -171,42 +123,7 @@ return;
 
 
 
-
-const lista = await Promise.all(
-
-(data || []).map(async(item:any)=>{
-
-
-const {data:repertorio}=await supabase
-.from("culto_louvores")
-.select("louvores(*)")
-.eq("culto_id",item.culto_id);
-
-
-
-return {
-
-...item,
-
-cultos:{
-
-...item.cultos,
-
-repertorio:
-repertorio?.map((r:any)=>r.louvores) || []
-
-}
-
-};
-
-
-})
-
-);
-
-
-
-setEscala(lista);
+setEscala(data || []);
 
 
 }
@@ -216,20 +133,62 @@ setEscala(lista);
 
 
 
+async function criarMembro(){
 
 
+if(!nome || !funcao){
+
+return;
+
+}
+
+
+
+const {error}=await supabase
+.from("membros")
+.insert({
+
+nome,
+funcao,
+status:"ativo"
+
+});
+
+
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+
+
+setNome("");
+setFuncao("");
+
+carregarMembros();
+
+
+}
 
 async function adicionarEscala(){
 
 
-if(!cultoId || !membroId)
+if(!cultoId || !membroId){
+
 return;
 
+}
 
 
-const membro = membros.find(
-m=>m.id === Number(membroId)
+
+const membro =
+membros.find(
+(m)=>m.id === Number(membroId)
 );
+
 
 
 
@@ -267,11 +226,14 @@ carregarEscala();
 
 
 
+async function confirmar(
+id:number,
+valor:boolean
+){
 
-async function confirmar(id:number,valor:boolean){
 
 
-await supabase
+const {error}=await supabase
 .from("escala")
 .update({
 
@@ -279,6 +241,15 @@ confirmado:!valor
 
 })
 .eq("id",id);
+
+
+
+if(error){
+
+alert(error.message);
+return;
+
+}
 
 
 
@@ -294,20 +265,44 @@ carregarEscala();
 
 
 
-const grupos = cultos.map(culto=>({
+async function removerEscala(id:number){
 
 
-culto,
+
+const confirmarRemover = window.confirm(
+"Remover este integrante da escala?"
+);
 
 
-membros:
 
-escala.filter(
-e=>e.culto_id === culto.id
-)
+if(!confirmarRemover){
+
+return;
+
+}
 
 
-}));
+
+const {error}=await supabase
+.from("escala")
+.delete()
+.eq("id",id);
+
+
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+
+
+carregarEscala();
+
+
+}
 
 
 
@@ -331,12 +326,63 @@ return (
 
 
 
+
 <div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
 
 <h2 className="font-bold mb-3">
-Adicionar na escala
+Cadastrar membro
 </h2>
+
+
+
+<input
+className="w-full p-3 bg-zinc-800 rounded mb-3"
+placeholder="Nome"
+value={nome}
+onChange={(e)=>setNome(e.target.value)}
+/>
+
+
+
+
+<input
+className="w-full p-3 bg-zinc-800 rounded mb-3"
+placeholder="Função (Vocal, Violão...)"
+value={funcao}
+onChange={(e)=>setFuncao(e.target.value)}
+/>
+
+
+
+
+<button
+onClick={criarMembro}
+className="bg-blue-600 px-5 py-3 rounded"
+>
+
+Adicionar membro
+
+</button>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div className="bg-zinc-900 p-5 rounded-xl mb-6">
+
+
+<h2 className="font-bold mb-3">
+Criar escala
+</h2>
+
 
 
 
@@ -354,6 +400,7 @@ Escolha o culto
 
 {cultos.map(c=>(
 
+
 <option
 key={c.id}
 value={c.id}
@@ -363,10 +410,13 @@ value={c.id}
 
 </option>
 
+
 ))}
 
 
 </select>
+
+
 
 
 
@@ -383,7 +433,9 @@ Escolha o membro
 </option>
 
 
+
 {membros.map(m=>(
+
 
 <option
 key={m.id}
@@ -394,10 +446,13 @@ value={m.id}
 
 </option>
 
+
 ))}
 
 
 </select>
+
+
 
 
 
@@ -408,7 +463,7 @@ onClick={adicionarEscala}
 className="bg-green-600 px-5 py-3 rounded"
 >
 
-Adicionar
+Adicionar na escala
 
 </button>
 
@@ -424,52 +479,37 @@ Adicionar
 
 
 
-{grupos.map(g=>(
+<div className="space-y-4">
 
 
-<div
-key={g.culto.id}
-className="bg-zinc-900 p-6 rounded-xl mb-6"
->
+{escala.map((e)=>(
 
-
-<h2 className="text-2xl font-bold">
-⛪ {g.culto.nome}
-</h2>
-
-
-<p className="text-zinc-400">
-📅 {g.culto.data} - ⏰ {g.culto.horario}
-</p>
-
-
-
-
-
-<h3 className="font-bold mt-5">
-👥 Equipe
-</h3>
-
-
-
-
-{g.membros.map(e=>(
 
 
 <div
 key={e.id}
-className="bg-zinc-800 p-4 rounded mt-3"
+className="bg-zinc-900 p-5 rounded-xl"
 >
 
 
-<h3 className="font-bold">
+
+<h2 className="font-bold text-xl">
 {e.membros?.nome}
-</h3>
+</h2>
+
 
 
 <p>
 🎤 {e.funcao}
 </p>
+
+
+
+<p>
+⛪ {e.cultos?.nome}
+</p>
+
+
 
 
 
@@ -479,8 +519,21 @@ className="bg-blue-600 px-4 py-2 rounded mt-3"
 >
 
 {e.confirmado
-?"✅ Confirmado"
-:"⏳ Confirmar presença"}
+? "✅ Confirmado"
+: "Confirmar presença"}
+
+</button>
+
+
+
+
+
+<button
+onClick={()=>removerEscala(e.id)}
+className="bg-red-600 px-4 py-2 rounded mt-3 ml-3"
+>
+
+❌ Remover
 
 </button>
 
@@ -493,57 +546,7 @@ className="bg-blue-600 px-4 py-2 rounded mt-3"
 
 
 
-
-
-
-
-
-<h3 className="font-bold mt-6">
-🎵 Repertório
-</h3>
-
-
-
-
-{g.culto.repertorio?.map((l:any)=>(
-
-
-<div
-key={l.id}
-className="bg-zinc-800 p-3 rounded mt-2"
->
-
-
-<p>
-🎶 {l.nome}
-</p>
-
-
-<p>
-🎤 {l.artista}
-</p>
-
-
-<p>
-🎸 Tom: {l.tom}
-</p>
-
-
 </div>
-
-
-))}
-
-
-
-
-
-</div>
-
-
-))}
-
-
 
 
 
