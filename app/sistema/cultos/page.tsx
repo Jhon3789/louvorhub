@@ -137,8 +137,9 @@ const cl=await supabase
 setCultoLouvores(cl.data||[]);
 
 
-
 }
+
+
 
 
 
@@ -154,6 +155,7 @@ alert("Preencha os campos");
 return;
 
 }
+
 
 
 const {error}=await supabase
@@ -191,6 +193,68 @@ carregar();
 
 
 
+
+
+
+async function excluirCulto(id:number){
+
+
+const confirmar=confirm(
+"Deseja excluir este culto?"
+);
+
+
+
+if(!confirmar)return;
+
+
+
+
+await supabase
+.from("culto_louvores")
+.delete()
+.eq("culto_id",id);
+
+
+
+
+await supabase
+.from("escala")
+.delete()
+.eq("culto_id",id);
+
+
+
+
+const {error}=await supabase
+.from("cultos")
+.delete()
+.eq("id",id);
+
+
+
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+
+
+carregar();
+
+
+}
+
+
+
+
+
+
+
+
 function marcarLouvor(id:number){
 
 
@@ -198,7 +262,9 @@ if(selecionados.includes(id)){
 
 
 setSelecionados(
+
 selecionados.filter(x=>x!==id)
+
 );
 
 
@@ -206,21 +272,18 @@ selecionados.filter(x=>x!==id)
 
 
 setSelecionados([
+
 ...selecionados,
+
 id
+
 ]);
 
 
 }
 
 
-}
-
-
-
-
-
-async function salvarRepertorio(){
+}async function salvarRepertorio(){
 
 
 if(!cultoId || selecionados.length===0){
@@ -255,7 +318,9 @@ return;
 }
 
 
+
 alert("Repertório salvo");
+
 
 setSelecionados([]);
 
@@ -263,20 +328,28 @@ carregar();
 
 
 }
+
+
+
+
+
+
+
+
+
 function nomeMembro(id:number){
 
 
-const m=membros.find(
+return membros.find(
 
-(x)=>x.id===id
+(m)=>m.id===id
 
 );
 
 
-return m;
-
-
 }
+
+
 
 
 
@@ -317,6 +390,7 @@ louvores.find(
 
 
 
+
 return(
 
 
@@ -349,6 +423,7 @@ return(
 
 
 
+
 <input
 
 className="w-full bg-zinc-800 p-3 rounded mb-3"
@@ -364,6 +439,7 @@ onChange={e=>setNome(e.target.value)}
 
 
 
+
 <input
 
 type="date"
@@ -375,6 +451,7 @@ value={data}
 onChange={e=>setData(e.target.value)}
 
 />
+
 
 
 
@@ -395,50 +472,6 @@ onChange={e=>setHorario(e.target.value)}
 
 
 
-<select
-
-className="w-full bg-zinc-800 p-3 rounded mb-3"
-
-value={status}
-
-onChange={e=>setStatus(e.target.value)}
-
->
-
-
-<option>
-
-Agendado
-
-</option>
-
-
-<option>
-
-Confirmado
-
-</option>
-
-
-<option>
-
-Realizado
-
-</option>
-
-
-<option>
-
-Cancelado
-
-</option>
-
-
-</select>
-
-
-
-
 
 <button
 
@@ -451,6 +484,7 @@ className="bg-blue-600 px-5 py-3 rounded-xl"
 Cadastrar Culto
 
 </button>
+
 
 
 
@@ -470,9 +504,10 @@ Cadastrar Culto
 
 <h2 className="text-xl font-bold">
 
-🎵 Escolher Repertório
+🎵 Repertório
 
 </h2>
+
 
 
 
@@ -495,7 +530,6 @@ Escolha o culto
 
 
 
-
 {cultos.map(c=>(
 
 
@@ -514,7 +548,6 @@ value={c.id}
 </option>
 
 
-
 ))}
 
 
@@ -526,8 +559,6 @@ value={c.id}
 
 
 
-
-<div className="space-y-2">
 
 
 {louvores.map(l=>(
@@ -546,9 +577,7 @@ className="block"
 
 type="checkbox"
 
-checked={
-selecionados.includes(l.id)
-}
+checked={selecionados.includes(l.id)}
 
 onChange={()=>marcarLouvor(l.id)}
 
@@ -568,9 +597,6 @@ onChange={()=>marcarLouvor(l.id)}
 
 
 ))}
-
-
-</div>
 
 
 
@@ -609,6 +635,7 @@ Salvar Repertório
 {cultos.map(c=>(
 
 
+
 <div
 
 key={c.id}
@@ -616,7 +643,6 @@ key={c.id}
 className="bg-zinc-900 p-5 rounded-xl"
 
 >
-
 
 
 
@@ -629,14 +655,11 @@ className="bg-zinc-900 p-5 rounded-xl"
 
 
 
-
 <p>
 
 📅 {c.data}
 
 </p>
-
-
 
 
 <p>
@@ -661,40 +684,19 @@ className="bg-zinc-900 p-5 rounded-xl"
 
 
 
-
 {repertorioCulto(c.id).map((l:any)=>(
 
 
 <p key={l.id}>
 
-🎶 {l.nome}
-
-- {l.artista}
+🎶 {l.nome} - {l.artista}
 
 {l.tom && ` (Tom ${l.tom})`}
 
-
 </p>
-
 
 
 ))}
-
-
-
-
-
-
-{repertorioCulto(c.id).length===0 && (
-
-<p className="text-zinc-400">
-
-Nenhum louvor selecionado.
-
-</p>
-
-)}
-
 
 
 
@@ -729,19 +731,12 @@ return(
 <p key={e.id}>
 
 
-👤 {m?.nome}
-
-- {m?.funcao}
+👤 {m?.nome} - {m?.funcao}
 
 
 {e.confirmado
-
 ? " ✅"
-
-: " ⏳"
-
-}
-
+: " ⏳"}
 
 
 </p>
@@ -750,8 +745,25 @@ return(
 )
 
 
-
 })}
+
+
+
+
+
+
+
+<button
+
+onClick={()=>excluirCulto(c.id)}
+
+className="bg-red-600 px-4 py-2 rounded-xl mt-5"
+
+>
+
+🗑 Excluir culto
+
+</button>
 
 
 
