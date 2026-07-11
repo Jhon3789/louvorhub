@@ -16,7 +16,6 @@ type Membro = {
   id:number;
   nome:string;
   funcao:string;
-  status:string;
 };
 
 
@@ -38,10 +37,10 @@ export default function EscalaPage(){
   const [escala,setEscala] = useState<Escala[]>([]);
 
 
-
   const [cultoId,setCultoId] = useState("");
   const [membroId,setMembroId] = useState("");
 
+  const [erro,setErro] = useState("");
 
 
 
@@ -51,41 +50,24 @@ export default function EscalaPage(){
 
   useEffect(()=>{
 
-
-    carregarCultos();
-    async function carregarMembros(){
-
-
-  const {data,error}= await supabase
-
-    .from("membros")
-    .select("*")
-    .order("nome");
-
-
-
-  if(error){
-
-    alert(error.message);
-    return;
-
-  }
-
-
-
-  console.log("Membros encontrados:", data);
-
-
-  setMembros(data || []);
-
-
-}
-    carregarEscala();
-
+    carregarTudo();
 
   },[]);
 
 
+
+
+
+
+  async function carregarTudo(){
+
+    await carregarCultos();
+
+    await carregarMembros();
+
+    await carregarEscala();
+
+  }
 
 
 
@@ -96,20 +78,21 @@ export default function EscalaPage(){
   async function carregarCultos(){
 
 
-    const {data,error}= await supabase
+    const {data,error}=await supabase
 
       .from("cultos")
       .select("*")
-      .order("data",{ascending:true});
+      .order("data");
 
 
 
     if(error){
 
-      alert(error.message);
+      setErro(error.message);
       return;
 
     }
+
 
 
     setCultos(data || []);
@@ -128,22 +111,28 @@ export default function EscalaPage(){
 
 
 
-    const {data,error}= await supabase
+    const {data,error}=await supabase
 
       .from("membros")
-      .select("*")
-      .eq("status","Ativo")
+      .select("id,nome,funcao")
       .order("nome");
-
 
 
 
     if(error){
 
-      alert(error.message);
+      setErro(
+        "Erro ao carregar membros: "
+        + error.message
+      );
+
       return;
 
     }
+
+
+
+    console.log("MEMBROS:",data);
 
 
 
@@ -163,7 +152,7 @@ export default function EscalaPage(){
 
 
 
-    const {data,error}= await supabase
+    const {data,error}=await supabase
 
       .from("escala")
       .select("*")
@@ -173,7 +162,7 @@ export default function EscalaPage(){
 
     if(error){
 
-      alert(error.message);
+      setErro(error.message);
       return;
 
     }
@@ -181,7 +170,6 @@ export default function EscalaPage(){
 
 
     setEscala(data || []);
-
 
 
   }
@@ -194,7 +182,7 @@ export default function EscalaPage(){
 
 
 
-  async function adicionarEscala(){
+  async function adicionar(){
 
 
 
@@ -209,9 +197,9 @@ export default function EscalaPage(){
 
 
 
-    const membroEscolhido = membros.find(
+    const membro = membros.find(
 
-      (m)=>m.id === Number(membroId)
+      m=>m.id === Number(membroId)
 
     );
 
@@ -219,7 +207,7 @@ export default function EscalaPage(){
 
 
 
-    if(!membroEscolhido){
+    if(!membro){
 
       alert("Membro não encontrado");
       return;
@@ -231,8 +219,7 @@ export default function EscalaPage(){
 
 
 
-
-    const {error}= await supabase
+    const {error}=await supabase
 
       .from("escala")
 
@@ -240,9 +227,9 @@ export default function EscalaPage(){
 
         culto_id:Number(cultoId),
 
-        membro:membroEscolhido.nome,
+        membro:membro.nome,
 
-        funcao:membroEscolhido.funcao,
+        funcao:membro.funcao,
 
         confirmado:false
 
@@ -259,8 +246,6 @@ export default function EscalaPage(){
       return;
 
     }
-
-
 
 
 
@@ -284,7 +269,6 @@ export default function EscalaPage(){
   async function confirmar(id:number,valor:boolean){
 
 
-
     await supabase
 
       .from("escala")
@@ -296,7 +280,6 @@ export default function EscalaPage(){
       })
 
       .eq("id",id);
-
 
 
 
@@ -317,20 +300,6 @@ export default function EscalaPage(){
   async function excluir(id:number){
 
 
-
-    const confirmar = confirm(
-      "Deseja excluir este membro da escala?"
-    );
-
-
-
-    if(!confirmar)return;
-
-
-
-
-
-
     await supabase
 
       .from("escala")
@@ -341,10 +310,7 @@ export default function EscalaPage(){
 
 
 
-
-
     carregarEscala();
-
 
 
   }
@@ -356,28 +322,21 @@ export default function EscalaPage(){
 
 
 
-
-  function nomeCulto(id:number){
-
+  function cultoNome(id:number){
 
 
-    const culto = cultos.find(
+    const c=cultos.find(
 
-      (c)=>c.id===id
+      x=>x.id===id
 
     );
 
 
-
-    if(!culto)return "";
-
-
-
-    return `${culto.nome} - ${culto.data}`;
-
+    return c
+      ? c.nome
+      : "";
 
   }
-
 
 
 
@@ -387,7 +346,6 @@ export default function EscalaPage(){
 
 
   return(
-
 
     <div className="text-white">
 
@@ -402,20 +360,30 @@ export default function EscalaPage(){
 
 
 
+      {erro && (
+
+        <div className="bg-red-600 p-3 rounded-xl mb-5">
+
+          {erro}
+
+        </div>
+
+      )}
 
 
 
-      <div className="bg-zinc-900 p-5 rounded-xl mb-8">
+
+
+
+
+      <div className="bg-zinc-900 p-5 rounded-xl">
 
 
         <h2 className="text-xl font-bold mb-4">
 
-          ➕ Nova escala
+          ➕ Adicionar membro
 
         </h2>
-
-
-
 
 
 
@@ -431,7 +399,6 @@ export default function EscalaPage(){
 
         >
 
-
           <option value="">
 
             Escolha o culto
@@ -439,31 +406,18 @@ export default function EscalaPage(){
           </option>
 
 
+          {cultos.map(c=>(
 
-
-          {cultos.map((c)=>(
-
-
-            <option
-
-              key={c.id}
-
-              value={c.id}
-
-            >
+            <option key={c.id} value={c.id}>
 
               {c.nome} - {c.data}
 
             </option>
 
-
           ))}
 
 
-
         </select>
-
-
 
 
 
@@ -480,35 +434,24 @@ export default function EscalaPage(){
 
         >
 
-
           <option value="">
 
-            Escolha o membro
+            {membros.length
+            ? "Escolha o membro"
+            : "Nenhum membro encontrado"}
 
           </option>
 
 
+          {membros.map(m=>(
 
-
-
-          {membros.map((m)=>(
-
-
-            <option
-
-              key={m.id}
-
-              value={m.id}
-
-            >
+            <option key={m.id} value={m.id}>
 
               {m.nome} - {m.funcao}
 
             </option>
 
-
           ))}
-
 
 
         </select>
@@ -518,11 +461,9 @@ export default function EscalaPage(){
 
 
 
-
-
         <button
 
-          onClick={adicionarEscala}
+          onClick={adicionar}
 
           className="bg-blue-600 px-5 py-3 rounded-xl"
 
@@ -534,8 +475,6 @@ export default function EscalaPage(){
 
 
 
-
-
       </div>
 
 
@@ -546,86 +485,65 @@ export default function EscalaPage(){
 
 
 
-      <div className="space-y-5">
+      <div className="mt-6 space-y-4">
 
 
-
-        {escala.map((p)=>(
-
+        {escala.map(e=>(
 
 
           <div
 
-            key={p.id}
+            key={e.id}
 
             className="bg-zinc-900 p-5 rounded-xl"
 
           >
 
 
-
-
             <h2 className="text-xl font-bold">
 
-              👤 {p.membro}
+              👤 {e.membro}
 
             </h2>
 
 
-
-
-
             <p>
 
-              🎯 {p.funcao}
+              🎵 {e.funcao}
 
             </p>
 
 
-
-
-
             <p>
 
-              ⛪ {nomeCulto(p.culto_id)}
+              ⛪ {cultoNome(e.culto_id)}
 
             </p>
-
-
-
-
 
 
             <button
 
               onClick={()=>confirmar(
-                p.id,
-                p.confirmado
+                e.id,
+                e.confirmado
               )}
 
               className="mt-3"
 
             >
 
-              {p.confirmado
-
+              {e.confirmado
               ? "✅ Confirmado"
-
-              : "⏳ Aguardando"}
+              : "⏳ Pendente"}
 
             </button>
 
 
-
-
-
-
-
             <button
 
-              onClick={()=>excluir(p.id)}
+              onClick={()=>excluir(e.id)}
 
-              className="block text-red-500 mt-4"
+              className="block text-red-500 mt-3"
 
             >
 
@@ -634,24 +552,16 @@ export default function EscalaPage(){
             </button>
 
 
-
-
-
           </div>
 
 
         ))}
 
 
-
       </div>
 
 
-
-
-
     </div>
-
 
   );
 
