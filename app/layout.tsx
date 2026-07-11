@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-import Sidebar from "./components/components/Sidebar";
-
 
 export const metadata: Metadata = {
   title: "LouvorHub",
@@ -17,32 +15,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
 
-
   return (
 
     <html lang="pt-BR">
 
       <body>
 
-
-        <div className="flex min-h-screen">
-
-
-          <Sidebar />
-
-
-          <main className="flex-1">
-
-            {children}
-
-          </main>
-
-
-        </div>
-
+        {children}
 
         <script src="/register-sw.js" />
-
 
       </body>
 

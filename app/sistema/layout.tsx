@@ -12,11 +12,7 @@ export default function SistemaLayout({
 
     <div className="flex min-h-screen bg-black">
 
-
-      <div>
-        <Sidebar />
-      </div>
-
+      <Sidebar />
 
       <main className="flex-1 p-6">
 
@@ -24,10 +20,8 @@ export default function SistemaLayout({
 
       </main>
 
-
     </div>
 
   );
 
 }
-
