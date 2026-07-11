@@ -12,6 +12,14 @@ type Culto = {
 };
 
 
+type Membro = {
+  id:number;
+  nome:string;
+  funcao:string;
+  status:string;
+};
+
+
 type Escala = {
   id:number;
   culto_id:number;
@@ -26,12 +34,15 @@ export default function EscalaPage(){
 
 
   const [cultos,setCultos] = useState<Culto[]>([]);
+  const [membros,setMembros] = useState<Membro[]>([]);
   const [escala,setEscala] = useState<Escala[]>([]);
 
 
+
   const [cultoId,setCultoId] = useState("");
-  const [membro,setMembro] = useState("");
-  const [funcao,setFuncao] = useState("Vocal");
+  const [membroId,setMembroId] = useState("");
+
+
 
 
 
@@ -40,10 +51,15 @@ export default function EscalaPage(){
 
   useEffect(()=>{
 
+
     carregarCultos();
+    carregarMembros();
     carregarEscala();
 
+
   },[]);
+
+
 
 
 
@@ -82,8 +98,43 @@ export default function EscalaPage(){
 
 
 
+  async function carregarMembros(){
+
+
+
+    const {data,error}= await supabase
+
+      .from("membros")
+      .select("*")
+      .eq("status","Ativo")
+      .order("nome");
+
+
+
+
+    if(error){
+
+      alert(error.message);
+      return;
+
+    }
+
+
+
+    setMembros(data || []);
+
+
+  }
+
+
+
+
+
+
+
 
   async function carregarEscala(){
+
 
 
     const {data,error}= await supabase
@@ -106,6 +157,7 @@ export default function EscalaPage(){
     setEscala(data || []);
 
 
+
   }
 
 
@@ -120,12 +172,34 @@ export default function EscalaPage(){
 
 
 
-    if(!cultoId || !membro){
+    if(!cultoId || !membroId){
 
-      alert("Preencha todos os campos");
+      alert("Escolha o culto e o membro");
       return;
 
     }
+
+
+
+
+
+    const membroEscolhido = membros.find(
+
+      (m)=>m.id === Number(membroId)
+
+    );
+
+
+
+
+
+    if(!membroEscolhido){
+
+      alert("Membro não encontrado");
+      return;
+
+    }
+
 
 
 
@@ -140,9 +214,9 @@ export default function EscalaPage(){
 
         culto_id:Number(cultoId),
 
-        membro,
+        membro:membroEscolhido.nome,
 
-        funcao,
+        funcao:membroEscolhido.funcao,
 
         confirmado:false
 
@@ -164,16 +238,14 @@ export default function EscalaPage(){
 
 
 
-    setMembro("");
-    setFuncao("Vocal");
 
+    setMembroId("");
 
     carregarEscala();
 
 
 
   }
-
 
 
 
@@ -216,7 +288,6 @@ export default function EscalaPage(){
 
 
 
-
   async function excluir(id:number){
 
 
@@ -233,6 +304,7 @@ export default function EscalaPage(){
 
 
 
+
     await supabase
 
       .from("escala")
@@ -240,6 +312,8 @@ export default function EscalaPage(){
       .delete()
 
       .eq("id",id);
+
+
 
 
 
@@ -257,23 +331,26 @@ export default function EscalaPage(){
 
 
 
-
   function nomeCulto(id:number){
 
 
+
     const culto = cultos.find(
+
       (c)=>c.id===id
+
     );
 
 
+
     if(!culto)return "";
+
 
 
     return `${culto.nome} - ${culto.data}`;
 
 
   }
-
 
 
 
@@ -301,6 +378,7 @@ export default function EscalaPage(){
 
 
 
+
       <div className="bg-zinc-900 p-5 rounded-xl mb-8">
 
 
@@ -309,6 +387,8 @@ export default function EscalaPage(){
           ➕ Nova escala
 
         </h2>
+
+
 
 
 
@@ -325,6 +405,7 @@ export default function EscalaPage(){
 
         >
 
+
           <option value="">
 
             Escolha o culto
@@ -333,39 +414,28 @@ export default function EscalaPage(){
 
 
 
+
           {cultos.map((c)=>(
 
+
             <option
+
               key={c.id}
+
               value={c.id}
+
             >
 
               {c.nome} - {c.data}
 
             </option>
 
+
           ))}
 
 
+
         </select>
-
-
-
-
-
-
-
-        <input
-
-          className="w-full bg-zinc-800 p-3 rounded mb-3"
-
-          placeholder="Nome do membro"
-
-          value={membro}
-
-          onChange={(e)=>setMembro(e.target.value)}
-
-        />
 
 
 
@@ -378,21 +448,46 @@ export default function EscalaPage(){
 
           className="w-full bg-zinc-800 p-3 rounded mb-3"
 
-          value={funcao}
+          value={membroId}
 
-          onChange={(e)=>setFuncao(e.target.value)}
+          onChange={(e)=>setMembroId(e.target.value)}
 
         >
 
-          <option>Vocal</option>
-          <option>Violão</option>
-          <option>Teclado</option>
-          <option>Bateria</option>
-          <option>Baixo</option>
-          <option>Sonoplastia</option>
+
+          <option value="">
+
+            Escolha o membro
+
+          </option>
+
+
+
+
+
+          {membros.map((m)=>(
+
+
+            <option
+
+              key={m.id}
+
+              value={m.id}
+
+            >
+
+              {m.nome} - {m.funcao}
+
+            </option>
+
+
+          ))}
+
 
 
         </select>
+
+
 
 
 
@@ -414,7 +509,9 @@ export default function EscalaPage(){
 
 
 
+
       </div>
+
 
 
 
@@ -485,8 +582,10 @@ export default function EscalaPage(){
             >
 
               {p.confirmado
-                ? "✅ Confirmado"
-                : "⏳ Aguardando confirmação"}
+
+              ? "✅ Confirmado"
+
+              : "⏳ Aguardando"}
 
             </button>
 
@@ -511,8 +610,8 @@ export default function EscalaPage(){
 
 
 
-          </div>
 
+          </div>
 
 
         ))}
