@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Cross } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
@@ -102,18 +103,36 @@ export default function SistemaLayout({
 
   return (
 
-    <div className="min-h-screen bg-[#080b16] text-white flex">
+    <div className="min-h-screen bg-gradient-to-br from-[#070b16] via-[#0d1224] to-[#09090f] text-white flex">
 
 
-      <aside className="w-72 bg-[#111827] p-6 border-r border-white/10">
+    <aside className="w-72 h-screen sticky top-0 bg-[#111827] p-6 border-r border-white/10 shadow-2xl">
 
 
-        <h1 className="text-2xl font-bold mb-8 text-yellow-400">
+     <h1 className="flex items-center gap-3 mb-8">
 
-          🎵 LouvorHub
+  <Cross
+    className="w-8 h-8 text-violet-600"
+    strokeWidth={2.5}
+  />
 
-        </h1>
+  <div>
 
+    <p className="text-2xl font-bold text-yellow-400">
+
+      Louvor Quadrangular
+
+    </p>
+
+    <p className="text-xs text-zinc-400">
+
+      Ministério de Louvor
+
+    </p>
+
+  </div>
+
+</h1>
 
 
 
