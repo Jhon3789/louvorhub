@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "LouvorHub",
   description: "Ministério de Louvor",
   manifest: "/manifest.webmanifest",
@@ -15,6 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
 
+
   return (
 
     <html lang="pt-BR">
@@ -23,9 +24,7 @@ export default function RootLayout({
 
         {children}
 
-
         <script src="/register-sw.js" />
-
 
       </body>
 

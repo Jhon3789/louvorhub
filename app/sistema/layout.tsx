@@ -1,356 +1,37 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Cross } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
+import type { Metadata } from "next";
+import "./globals.css";
 
 
-export default function SistemaLayout({
+export const metadata: Metadata = {
+  title: "LouvorHub",
+  description: "Ministério de Louvor",
+  manifest: "/manifest.webmanifest",
+};
 
+
+export default function RootLayout({
   children,
-
-}: {
-
+}: Readonly<{
   children: React.ReactNode;
-
-}) {
-
-
-  const router = useRouter();
-
-  const [usuario, setUsuario] = useState<any>(null);
-  const [perfil, setPerfil] = useState<any>(null);
-
-
-
-  useEffect(() => {
-
-    carregarUsuario();
-
-  }, []);
-
-
-
-
-
-  async function carregarUsuario() {
-
-
-    const {
-      data: { user }
-
-    } = await supabase.auth.getUser();
-
-
-
-
-    if (!user) {
-
-      router.push("/login");
-      return;
-
-    }
-
-
-
-
-    setUsuario(user);
-
-
-
-
-
-    const { data } = await supabase
-
-      .from("usuarios")
-
-      .select("*")
-
-      .eq("email", user.email)
-
-      .single();
-
-
-
-
-
-    setPerfil(data);
-
-
-  }
-
-
-
-
-
-
-  async function sair() {
-
-
-    await supabase.auth.signOut();
-
-    router.push("/login");
-
-
-  }
-
-
-
-
+}>) {
 
 
   return (
 
-    <div className="min-h-screen bg-gradient-to-br from-[#070b16] via-[#0d1224] to-[#09090f] text-white flex">
+    <html lang="pt-BR">
 
-
-    <aside className="w-72 h-screen sticky top-0 bg-[#111827] p-6 border-r border-white/10 shadow-2xl">
-
-
-     <h1 className="flex items-center gap-3 mb-8">
-
-  <Cross
-    className="w-8 h-8 text-violet-600"
-    strokeWidth={2.5}
-  />
-
-  <div>
-
-    <p className="text-2xl font-bold text-yellow-400">
-
-      Louvor Quadrangular
-
-    </p>
-
-    <p className="text-xs text-zinc-400">
-
-      Ministério de Louvor
-
-    </p>
-
-  </div>
-
-</h1>
-
-
-
-
-        {usuario && (
-
-          <div className="mb-8 p-4 rounded-2xl bg-white/5 border border-white/10">
-
-
-            <p className="text-sm text-zinc-300 truncate">
-
-              📧 {usuario.email}
-
-            </p>
-
-
-
-
-
-            {perfil && (
-
-              <p className="mt-3 text-sm text-yellow-400">
-
-
-                {perfil.nivel === "admin"
-
-                  ? "👑 Administrador"
-
-                  : "👤 Membro"
-
-                }
-
-
-              </p>
-
-
-            )}
-
-
-
-          </div>
-
-
-        )}
-
-
-
-
-
-
-
-        <nav className="space-y-3">
-
-
-
-          <Link
-
-            href="/sistema"
-
-            className="block p-3 rounded-xl bg-white/5 hover:bg-yellow-400 hover:text-black transition"
-
-          >
-
-            🏠 Início
-
-          </Link>
-
-
-
-
-
-
-          <Link
-
-            href="/sistema/louvores"
-
-            className="block p-3 rounded-xl bg-white/5 hover:bg-yellow-400 hover:text-black transition"
-
-          >
-
-            🎶 Louvores
-
-          </Link>
-
-
-
-
-
-
-          <Link
-
-            href="/sistema/cultos"
-
-            className="block p-3 rounded-xl bg-white/5 hover:bg-yellow-400 hover:text-black transition"
-
-          >
-
-            ⛪ Cultos
-
-          </Link>
-
-
-
-
-
-
-          <Link
-
-            href="/sistema/escala"
-
-            className="block p-3 rounded-xl bg-white/5 hover:bg-yellow-400 hover:text-black transition"
-
-          >
-
-            👥 Escala
-
-          </Link>
-
-
-
-
-
-
-          <Link
-
-            href="/sistema/avisos"
-
-            className="block p-3 rounded-xl bg-white/5 hover:bg-yellow-400 hover:text-black transition"
-
-          >
-
-            📜 Avisos
-
-          </Link>
-
-
-
-
-
-
-          <Link
-
-            href="/sistema/equipe"
-
-            className="block p-3 rounded-xl bg-white/5 hover:bg-yellow-400 hover:text-black transition"
-
-          >
-
-            👤 Equipe
-
-          </Link>
-
-
-
-
-
-
-          <Link
-
-            href="/sistema/sugestoes"
-
-            className="block p-3 rounded-xl bg-white/5 hover:bg-yellow-400 hover:text-black transition"
-
-          >
-
-            💡 Sugestões
-
-          </Link>
-
-
-
-
-
-
-
-          <button
-
-            onClick={sair}
-
-            className="w-full p-3 rounded-xl bg-red-600 hover:bg-red-700 transition text-left"
-
-          >
-
-            🚪 Sair
-
-          </button>
-
-
-
-
-
-        </nav>
-
-
-      </aside>
-
-
-
-
-
-
-
-      <main className="flex-1 p-8">
-
+      <body>
 
         {children}
 
 
-      </main>
+        <script src="/register-sw.js" />
 
 
+      </body>
 
-
-
-    </div>
-
+    </html>
 
   );
-
 
 }
