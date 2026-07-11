@@ -13,28 +13,18 @@ type Culto = {
 };
 
 
-type Louvor = {
-  id:number;
-  nome:string;
-  artista:string;
-  tom:string;
-};
-
-
-type Escala = {
-  id:number;
-  membro:string;
-  funcao:string;
-  confirmado:boolean;
-};
-
-
-
 
 export default function CultosPage(){
 
 
   const [cultos,setCultos] = useState<Culto[]>([]);
+
+  const [nome,setNome] = useState("");
+  const [data,setData] = useState("");
+  const [horario,setHorario] = useState("");
+  const [status,setStatus] = useState("Agendado");
+
+
 
 
 
@@ -43,7 +33,6 @@ export default function CultosPage(){
     carregarCultos();
 
   },[]);
-
 
 
 
@@ -63,8 +52,6 @@ export default function CultosPage(){
 
 
 
-
-
     if(error){
 
       console.log(error);
@@ -75,6 +62,147 @@ export default function CultosPage(){
 
 
     setCultos(data || []);
+
+
+  }
+
+
+
+
+
+
+
+  async function cadastrarCulto(){
+
+
+
+    if(!nome || !data || !horario){
+
+      alert("Preencha todos os campos");
+      return;
+
+    }
+
+
+
+
+
+    const {error} = await supabase
+
+      .from("cultos")
+
+      .insert({
+
+        nome,
+
+        data,
+
+        horario,
+
+        status
+
+      });
+
+
+
+
+
+    if(error){
+
+      alert(error.message);
+      return;
+
+    }
+
+
+
+
+
+    setNome("");
+    setData("");
+    setHorario("");
+    setStatus("Agendado");
+
+
+    carregarCultos();
+
+
+  }
+
+
+
+
+
+
+
+  async function excluirCulto(id:number){
+
+
+
+    const confirmar = confirm(
+      "Deseja excluir este culto?"
+    );
+
+
+
+    if(!confirmar) return;
+
+
+
+
+
+
+    await supabase
+
+      .from("culto_louvores")
+
+      .delete()
+
+      .eq("culto_id",id);
+
+
+
+
+
+
+
+    await supabase
+
+      .from("escala")
+
+      .delete()
+
+      .eq("culto_id",id);
+
+
+
+
+
+
+
+    const {error} = await supabase
+
+      .from("cultos")
+
+      .delete()
+
+      .eq("id",id);
+
+
+
+
+
+    if(error){
+
+      alert(error.message);
+      return;
+
+    }
+
+
+
+
+    carregarCultos();
 
 
   }
@@ -102,15 +230,120 @@ export default function CultosPage(){
 
 
 
-      {cultos.length === 0 && (
 
-        <p className="text-zinc-400">
+      <div className="bg-zinc-900 p-5 rounded-xl mb-8">
 
-          Nenhum culto cadastrado.
 
-        </p>
+        <h2 className="text-xl font-bold mb-4">
 
-      )}
+          ➕ Novo Culto
+
+        </h2>
+
+
+
+
+
+
+        <input
+
+          className="w-full bg-zinc-800 p-3 rounded mb-3"
+
+          placeholder="Nome do culto"
+
+          value={nome}
+
+          onChange={(e)=>setNome(e.target.value)}
+
+        />
+
+
+
+
+
+        <input
+
+          type="date"
+
+          className="w-full bg-zinc-800 p-3 rounded mb-3"
+
+          value={data}
+
+          onChange={(e)=>setData(e.target.value)}
+
+        />
+
+
+
+
+<div className="mb-3">
+
+  <label className="block text-sm text-zinc-400 mb-2">
+    🕒 Horário do culto
+  </label>
+
+  <input
+
+    type="time"
+
+    className="w-full bg-zinc-800 p-3 rounded"
+
+    value={horario}
+
+    onChange={(e)=>setHorario(e.target.value)}
+
+  />
+
+</div>
+
+
+
+
+
+
+        <select
+
+          className="w-full bg-zinc-800 p-3 rounded mb-3"
+
+          value={status}
+
+          onChange={(e)=>setStatus(e.target.value)}
+
+        >
+
+          <option>Agendado</option>
+
+          <option>Confirmado</option>
+
+          <option>Realizado</option>
+
+          <option>Cancelado</option>
+
+
+        </select>
+
+
+
+
+
+
+        <button
+
+          onClick={cadastrarCulto}
+
+          className="bg-blue-600 px-5 py-3 rounded"
+
+        >
+
+          Cadastrar Culto
+
+        </button>
+
+
+
+      </div>
+
+
 
 
 
@@ -125,21 +358,78 @@ export default function CultosPage(){
         {cultos.map((culto)=>(
 
 
-          <CultoCard
+
+          <div
 
             key={culto.id}
 
-            culto={culto}
+            className="bg-zinc-900 p-5 rounded-xl"
 
-          />
+          >
+
+
+
+            <h2 className="text-2xl font-bold">
+
+              {culto.nome}
+
+            </h2>
+
+
+
+            <p>
+              📅 {culto.data}
+            </p>
+
+
+            <p>
+              🕒 {culto.horario}
+            </p>
+
+
+            <p>
+              📌 {culto.status}
+            </p>
+
+
+
+
+
+            <CultoDetalhes cultoId={culto.id}/>
+
+
+
+
+
+
+            <button
+
+              onClick={()=>excluirCulto(culto.id)}
+
+              className="bg-red-600 px-4 py-2 rounded mt-5"
+
+            >
+
+              🗑 Excluir culto
+
+            </button>
+
+
+
+
+
+
+          </div>
+
 
 
         ))}
 
 
 
-
       </div>
+
+
 
 
 
@@ -158,12 +448,12 @@ export default function CultosPage(){
 
 
 
+function CultoDetalhes({cultoId}:{cultoId:number}){
 
-function CultoCard({culto}:{culto:Culto}){
 
+  const [louvores,setLouvores] = useState<any[]>([]);
+  const [escala,setEscala] = useState<any[]>([]);
 
-  const [louvores,setLouvores] = useState<Louvor[]>([]);
-  const [escala,setEscala] = useState<Escala[]>([]);
 
 
 
@@ -171,11 +461,10 @@ function CultoCard({culto}:{culto:Culto}){
 
   useEffect(()=>{
 
-
     carregarDetalhes();
 
-
   },[]);
+
 
 
 
@@ -186,20 +475,22 @@ function CultoCard({culto}:{culto:Culto}){
 
 
 
+
+
     const {data:ligacoes} = await supabase
 
       .from("culto_louvores")
 
       .select("louvor_id")
 
-      .eq("culto_id",culto.id);
+      .eq("culto_id",cultoId);
 
 
 
 
 
 
-    if(ligacoes && ligacoes.length > 0){
+    if(ligacoes && ligacoes.length){
 
 
 
@@ -208,7 +499,7 @@ function CultoCard({culto}:{culto:Culto}){
 
 
 
-      const {data:listaLouvores} = await supabase
+      const {data} = await supabase
 
         .from("louvores")
 
@@ -218,7 +509,8 @@ function CultoCard({culto}:{culto:Culto}){
 
 
 
-      setLouvores(listaLouvores || []);
+
+      setLouvores(data || []);
 
 
 
@@ -236,14 +528,13 @@ function CultoCard({culto}:{culto:Culto}){
 
       .select("*")
 
-      .eq("culto_id",culto.id);
+      .eq("culto_id",cultoId);
 
 
 
 
 
     setEscala(listaEscala || []);
-
 
 
 
@@ -256,47 +547,48 @@ function CultoCard({culto}:{culto:Culto}){
 
 
 
-
   return(
 
 
-    <div className="bg-zinc-900 p-6 rounded-xl">
+    <div className="mt-5">
 
 
 
-      <h2 className="text-2xl font-bold">
+      <h3 className="text-xl font-bold">
 
-        {culto.nome}
+        🎵 Louvores
 
-      </h2>
+      </h3>
 
 
 
 
-      <p>
+      {louvores.length === 0 && (
 
-        📅 {culto.data}
+        <p className="text-zinc-400">
 
-      </p>
+          Nenhum louvor selecionado.
 
+        </p>
 
+      )}
 
 
-      <p>
 
-        🕒 {culto.horario}
 
-      </p>
+      {louvores.map((l)=>(
 
 
+        <p key={l.id}>
 
+          🎶 {l.nome} - {l.artista}
 
-      <p>
+          {l.tom && ` (Tom ${l.tom})`}
 
-        📌 {culto.status}
+        </p>
 
-      </p>
 
+      ))}
 
 
 
@@ -304,117 +596,44 @@ function CultoCard({culto}:{culto:Culto}){
 
 
 
-      <div className="mt-5">
 
+      <h3 className="text-xl font-bold mt-5">
 
-        <h3 className="text-xl font-bold">
+        👥 Escala
 
-          🎵 Louvores
+      </h3>
 
-        </h3>
 
 
 
-        {louvores.length === 0 && (
 
-          <p className="text-zinc-400">
+      {escala.length === 0 && (
 
-            Nenhum louvor selecionado.
+        <p className="text-zinc-400">
 
-          </p>
+          Nenhuma escala cadastrada.
 
-        )}
+        </p>
 
+      )}
 
 
 
-        {louvores.map((louvor)=>(
 
 
-          <div key={louvor.id} className="mt-2">
+      {escala.map((p)=>(
 
 
-            🎶 {louvor.nome}
+        <p key={p.id}>
 
-            <br />
+          👤 {p.membro} - {p.funcao}
 
-            <span className="text-zinc-400">
+          {p.confirmado ? " ✅" : " ⏳"}
 
-              {louvor.artista} - Tom {louvor.tom}
+        </p>
 
-            </span>
 
-
-          </div>
-
-
-        ))}
-
-
-
-      </div>
-
-
-
-
-
-
-
-
-      <div className="mt-5">
-
-
-        <h3 className="text-xl font-bold">
-
-          👥 Escala
-
-        </h3>
-
-
-
-
-        {escala.length === 0 && (
-
-          <p className="text-zinc-400">
-
-            Nenhuma escala cadastrada.
-
-          </p>
-
-        )}
-
-
-
-
-
-
-        {escala.map((pessoa)=>(
-
-
-          <div key={pessoa.id} className="mt-2">
-
-
-            👤 {pessoa.membro}
-
-            {" - "}
-
-            {pessoa.funcao}
-
-            {" "}
-
-            {pessoa.confirmado ? "✅" : "⏳"}
-
-
-          </div>
-
-
-        ))}
-
-
-
-
-      </div>
-
+      ))}
 
 
 

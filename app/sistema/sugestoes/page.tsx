@@ -5,36 +5,37 @@ import { supabase } from "@/lib/supabase";
 
 
 type Sugestao = {
-  id:number;
-  nome:string;
-  artista:string;
-  status:string;
-  votos:number;
-  link:string;
+  id: number;
+  nome: string;
+  artista: string;
+  status: string;
+  votos: number;
+  link: string;
 };
 
 
-export default function SugestoesPage(){
+
+export default function SugestoesPage() {
 
 
-  const [sugestoes,setSugestoes] = useState<Sugestao[]>([]);
+  const [sugestoes, setSugestoes] = useState<Sugestao[]>([]);
 
-  const [nome,setNome] = useState("");
-  const [artista,setArtista] = useState("");
-  const [link,setLink] = useState("");
+  const [nome, setNome] = useState("");
+  const [artista, setArtista] = useState("");
+  const [link, setLink] = useState("");
 
-  const [admin,setAdmin] = useState(false);
-
-
+  const [admin, setAdmin] = useState(false);
 
 
 
-  useEffect(()=>{
+
+
+  useEffect(() => {
 
     carregarSugestoes();
     verificarAdmin();
 
-  },[]);
+  }, []);
 
 
 
@@ -42,47 +43,50 @@ export default function SugestoesPage(){
 
 
 
-  async function verificarAdmin(){
+  async function verificarAdmin() {
 
 
     const {
-      data:{user}
+      data: { user }
 
     } = await supabase.auth.getUser();
 
 
 
-    if(!user) return;
+
+    if (!user) return;
 
 
 
-    const {data,error} = await supabase
+
+
+
+    const { data, error } = await supabase
 
       .from("usuarios")
 
-      .select("*")
+      .select("nivel")
 
-      .eq("email",user.email)
+      .eq("email", user.email)
 
       .single();
 
 
 
 
-    console.log("USUARIO", user.email);
-    console.log("PERFIL", data);
-    console.log("ERRO", error);
+
+    console.log("PERFIL:", data);
+    console.log("ERRO:", error);
 
 
 
 
 
-    if(data?.tipo === "admin"){
+    if (data?.nivel === "admin") {
 
       setAdmin(true);
 
     }
-
 
 
   }
@@ -93,21 +97,22 @@ export default function SugestoesPage(){
 
 
 
+  async function carregarSugestoes() {
 
-  async function carregarSugestoes(){
 
-
-    const {data,error} = await supabase
+    const { data, error } = await supabase
 
       .from("sugestoes")
 
       .select("*")
 
-      .order("id",{ascending:false});
+      .order("id", { ascending: false });
 
 
 
-    if(error){
+
+
+    if (error) {
 
       console.log(error);
       return;
@@ -116,8 +121,8 @@ export default function SugestoesPage(){
 
 
 
-    setSugestoes(data || []);
 
+    setSugestoes(data || []);
 
 
   }
@@ -128,10 +133,10 @@ export default function SugestoesPage(){
 
 
 
-  async function criarSugestao(){
+  async function criarSugestao() {
 
 
-    if(!nome || !artista){
+    if (!nome || !artista) {
 
       alert("Preencha nome e artista");
       return;
@@ -140,29 +145,38 @@ export default function SugestoesPage(){
 
 
 
-    const {error} = await supabase
+
+
+
+    const { error } = await supabase
 
       .from("sugestoes")
 
       .insert({
 
         nome,
+
         artista,
+
         link,
-        status:"aguardando",
-        votos:0
+
+        status: "aguardando",
+
+        votos: 0
 
       });
 
 
 
 
-    if(error){
+
+    if (error) {
 
       alert(error.message);
       return;
 
     }
+
 
 
 
@@ -174,7 +188,6 @@ export default function SugestoesPage(){
     carregarSugestoes();
 
 
-
   }
 
 
@@ -183,21 +196,20 @@ export default function SugestoesPage(){
 
 
 
-  async function votar(id:number,votos:number){
+  async function votar(id:number, votos:number) {
 
 
-
-    const {error} = await supabase
+    const { error } = await supabase
 
       .from("sugestoes")
 
       .update({
 
-        votos:votos + 1
+        votos: votos + 1
 
       })
 
-      .eq("id",id);
+      .eq("id", id);
 
 
 
@@ -223,28 +235,31 @@ export default function SugestoesPage(){
 
 
 
-  async function aprovar(sugestao:Sugestao){
+
+  async function aprovar(sugestao:Sugestao) {
 
 
 
-    const {error:updateError} = await supabase
+    const { error: erroStatus } = await supabase
 
       .from("sugestoes")
 
       .update({
 
-        status:"aprovada"
+        status: "aprovada"
 
       })
 
-      .eq("id",sugestao.id);
+      .eq("id", sugestao.id);
 
 
 
 
-    if(updateError){
 
-      alert(updateError.message);
+
+    if(erroStatus){
+
+      alert(erroStatus.message);
       return;
 
     }
@@ -255,21 +270,21 @@ export default function SugestoesPage(){
 
 
 
-    const {error:louvorError} = await supabase
+    const { error: erroLouvor } = await supabase
 
       .from("louvores")
 
       .insert({
 
-        nome:sugestao.nome,
+        nome: sugestao.nome,
 
-        artista:sugestao.artista,
+        artista: sugestao.artista,
 
-        link:sugestao.link,
+        link: sugestao.link,
 
-        tom:"",
+        tom: "",
 
-        letra:""
+        letra: ""
 
       });
 
@@ -277,17 +292,18 @@ export default function SugestoesPage(){
 
 
 
-    if(louvorError){
 
-      alert(louvorError.message);
+    if(erroLouvor){
+
+      alert(erroLouvor.message);
       return;
 
     }
 
 
 
-    carregarSugestoes();
 
+    carregarSugestoes();
 
 
   }
@@ -299,7 +315,8 @@ export default function SugestoesPage(){
 
 
 
-  return(
+
+  return (
 
 
     <div className="text-white">
@@ -316,6 +333,8 @@ export default function SugestoesPage(){
 
 
 
+
+
       <div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
 
@@ -324,6 +343,7 @@ export default function SugestoesPage(){
           Nova sugestão
 
         </h2>
+
 
 
 
@@ -345,6 +365,7 @@ export default function SugestoesPage(){
 
 
 
+
         <input
 
           className="w-full bg-zinc-800 p-3 rounded mb-3"
@@ -361,9 +382,10 @@ export default function SugestoesPage(){
 
 
 
+
         <input
 
-          className="w-full bg-zinc_800 p-3 rounded mb-3"
+          className="w-full bg-zinc-800 p-3 rounded mb-3"
 
           placeholder="Link"
 
@@ -372,6 +394,8 @@ export default function SugestoesPage(){
           onChange={(e)=>setLink(e.target.value)}
 
         />
+
+
 
 
 
@@ -399,11 +423,13 @@ export default function SugestoesPage(){
 
 
 
+
       <div className="space-y-4">
 
 
 
         {sugestoes.map((s)=>(
+
 
 
           <div
@@ -415,11 +441,16 @@ export default function SugestoesPage(){
           >
 
 
+
+
             <h2 className="text-xl font-bold">
 
               {s.nome}
 
             </h2>
+
+
+
 
 
             <p>
@@ -429,6 +460,9 @@ export default function SugestoesPage(){
             </p>
 
 
+
+
+
             <p>
 
               👥 Votos: {s.votos}
@@ -436,11 +470,16 @@ export default function SugestoesPage(){
             </p>
 
 
+
+
+
             <p>
 
               Status: {s.status}
 
             </p>
+
+
 
 
 
@@ -464,7 +503,9 @@ export default function SugestoesPage(){
 
 
 
+
             {admin && s.status !== "aprovada" && (
+
 
 
               <button
@@ -480,13 +521,16 @@ export default function SugestoesPage(){
               </button>
 
 
+
             )}
 
 
 
 
 
+
           </div>
+
 
 
         ))}
