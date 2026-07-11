@@ -24,8 +24,6 @@ export default function SistemaLayout({
 
 
 
-
-
   useEffect(() => {
 
     carregarUsuario();
@@ -36,19 +34,18 @@ export default function SistemaLayout({
 
 
 
-
   async function carregarUsuario() {
 
 
     const {
-      data:{user}
+      data: { user }
 
     } = await supabase.auth.getUser();
 
 
 
 
-    if(!user){
+    if (!user) {
 
       router.push("/login");
       return;
@@ -64,8 +61,7 @@ export default function SistemaLayout({
 
 
 
-
-    const {data} = await supabase
+    const { data } = await supabase
 
       .from("usuarios")
 
@@ -82,7 +78,6 @@ export default function SistemaLayout({
     setPerfil(data);
 
 
-
   }
 
 
@@ -90,9 +85,7 @@ export default function SistemaLayout({
 
 
 
-
-
-  async function sair(){
+  async function sair() {
 
 
     await supabase.auth.signOut();
@@ -107,22 +100,17 @@ export default function SistemaLayout({
 
 
 
+  return (
+
+    <div className="min-h-screen bg-[#080b16] text-white flex">
 
 
-  return(
+      <aside className="w-72 bg-[#111827] p-6 border-r border-white/10">
 
 
-    <div className="min-h-screen bg-black text-white flex">
+        <h1 className="text-2xl font-bold mb-8 text-yellow-400">
 
-
-
-      <aside className="w-64 bg-zinc-900 p-5">
-
-
-
-        <h1 className="text-2xl font-bold mb-6">
-
-          🙏 LouvorHub
+          🎵 LouvorHub
 
         </h1>
 
@@ -130,13 +118,12 @@ export default function SistemaLayout({
 
 
 
-
         {usuario && (
 
-          <div className="text-sm text-zinc-400 mb-6">
+          <div className="mb-8 p-4 rounded-2xl bg-white/5 border border-white/10">
 
 
-            <p>
+            <p className="text-sm text-zinc-300 truncate">
 
               📧 {usuario.email}
 
@@ -148,7 +135,7 @@ export default function SistemaLayout({
 
             {perfil && (
 
-              <p className="mt-2">
+              <p className="mt-3 text-sm text-yellow-400">
 
 
                 {perfil.nivel === "admin"
@@ -182,20 +169,17 @@ export default function SistemaLayout({
 
 
 
-
-
           <Link
 
             href="/sistema"
 
-            className="block bg-zinc-800 p-3 rounded"
+            className="block p-3 rounded-xl bg-white/5 hover:bg-yellow-400 hover:text-black transition"
 
           >
 
-            ✝️ Início
+            🏠 Início
 
           </Link>
-
 
 
 
@@ -206,7 +190,7 @@ export default function SistemaLayout({
 
             href="/sistema/louvores"
 
-            className="block bg-zinc-800 p-3 rounded"
+            className="block p-3 rounded-xl bg-white/5 hover:bg-yellow-400 hover:text-black transition"
 
           >
 
@@ -219,12 +203,11 @@ export default function SistemaLayout({
 
 
 
-
           <Link
 
             href="/sistema/cultos"
 
-            className="block bg-zinc-800 p-3 rounded"
+            className="block p-3 rounded-xl bg-white/5 hover:bg-yellow-400 hover:text-black transition"
 
           >
 
@@ -237,12 +220,11 @@ export default function SistemaLayout({
 
 
 
-
           <Link
 
             href="/sistema/escala"
 
-            className="block bg-zinc-800 p-3 rounded"
+            className="block p-3 rounded-xl bg-white/5 hover:bg-yellow-400 hover:text-black transition"
 
           >
 
@@ -255,18 +237,17 @@ export default function SistemaLayout({
 
 
 
-
           <Link
 
             href="/sistema/avisos"
 
-            className="block bg-zinc-800 p-3 rounded"
+            className="block p-3 rounded-xl bg-white/5 hover:bg-yellow-400 hover:text-black transition"
 
           >
 
             📜 Avisos
-          </Link>
 
+          </Link>
 
 
 
@@ -277,7 +258,7 @@ export default function SistemaLayout({
 
             href="/sistema/equipe"
 
-            className="block bg-zinc-800 p-3 rounded"
+            className="block p-3 rounded-xl bg-white/5 hover:bg-yellow-400 hover:text-black transition"
 
           >
 
@@ -290,19 +271,17 @@ export default function SistemaLayout({
 
 
 
-
           <Link
 
             href="/sistema/sugestoes"
 
-            className="block bg-zinc-800 p-3 rounded"
+            className="block p-3 rounded-xl bg-white/5 hover:bg-yellow-400 hover:text-black transition"
 
           >
 
-            🎵 Sugestões
+            💡 Sugestões
 
           </Link>
-
 
 
 
@@ -314,7 +293,7 @@ export default function SistemaLayout({
 
             onClick={sair}
 
-            className="w-full bg-red-600 p-3 rounded text-left"
+            className="w-full p-3 rounded-xl bg-red-600 hover:bg-red-700 transition text-left"
 
           >
 
@@ -329,7 +308,6 @@ export default function SistemaLayout({
         </nav>
 
 
-
       </aside>
 
 
@@ -337,9 +315,12 @@ export default function SistemaLayout({
 
 
 
-      <main className="flex-1 p-6">
+
+      <main className="flex-1 p-8">
+
 
         {children}
+
 
       </main>
 
