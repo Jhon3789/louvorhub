@@ -53,7 +53,33 @@ export default function EscalaPage(){
 
 
     carregarCultos();
-    carregarMembros();
+    async function carregarMembros(){
+
+
+  const {data,error}= await supabase
+
+    .from("membros")
+    .select("*")
+    .order("nome");
+
+
+
+  if(error){
+
+    alert(error.message);
+    return;
+
+  }
+
+
+
+  console.log("Membros encontrados:", data);
+
+
+  setMembros(data || []);
+
+
+}
     carregarEscala();
 
 
