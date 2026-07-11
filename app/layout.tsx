@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+import Sidebar from "./components/components/Sidebar";
+
 
 export const metadata: Metadata = {
   title: "LouvorHub",
@@ -11,9 +13,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
 
 
   return (
@@ -22,9 +24,25 @@ export default function RootLayout({
 
       <body>
 
-        {children}
+
+        <div className="flex min-h-screen">
+
+
+          <Sidebar />
+
+
+          <main className="flex-1">
+
+            {children}
+
+          </main>
+
+
+        </div>
+
 
         <script src="/register-sw.js" />
+
 
       </body>
 
