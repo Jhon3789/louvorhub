@@ -22,10 +22,14 @@ type Membro = {
 type Escala = {
   id:number;
   culto_id:number;
-  membro:string;
-  funcao:string;
+  membro_id:number;
   confirmado:boolean;
+  membro?: {
+    nome:string;
+    funcao:string;
+  };
 };
+
 
 
 
@@ -40,9 +44,6 @@ export default function EscalaPage(){
   const [cultoId,setCultoId] = useState("");
   const [membroId,setMembroId] = useState("");
 
-  const [erro,setErro] = useState("");
-
-
 
 
 
@@ -50,24 +51,12 @@ export default function EscalaPage(){
 
   useEffect(()=>{
 
-    carregarTudo();
+    carregarCultos();
+    carregarMembros();
+    carregarEscala();
 
   },[]);
 
-
-
-
-
-
-  async function carregarTudo(){
-
-    await carregarCultos();
-
-    await carregarMembros();
-
-    await carregarEscala();
-
-  }
 
 
 
@@ -79,26 +68,23 @@ export default function EscalaPage(){
 
 
     const {data,error}=await supabase
-
       .from("cultos")
       .select("*")
       .order("data");
 
 
-
     if(error){
 
-      setErro(error.message);
+      alert(error.message);
       return;
 
     }
 
 
-
     setCultos(data || []);
 
-
   }
+
 
 
 
@@ -110,36 +96,24 @@ export default function EscalaPage(){
   async function carregarMembros(){
 
 
-
     const {data,error}=await supabase
-
       .from("membros")
       .select("id,nome,funcao")
       .order("nome");
 
 
-
     if(error){
 
-      setErro(
-        "Erro ao carregar membros: "
-        + error.message
-      );
-
+      alert(error.message);
       return;
 
     }
 
 
-
-    console.log("MEMBROS:",data);
-
-
-
     setMembros(data || []);
 
-
   }
+
 
 
 
@@ -151,18 +125,21 @@ export default function EscalaPage(){
   async function carregarEscala(){
 
 
-
     const {data,error}=await supabase
-
       .from("escala")
-      .select("*")
+      .select(`
+        id,
+        culto_id,
+        membro_id,
+        confirmado
+      `)
       .order("id",{ascending:false});
 
 
 
     if(error){
 
-      setErro(error.message);
+      alert(error.message);
       return;
 
     }
@@ -182,7 +159,7 @@ export default function EscalaPage(){
 
 
 
-  async function adicionar(){
+  async function adicionarEscala(){
 
 
 
@@ -197,44 +174,18 @@ export default function EscalaPage(){
 
 
 
-    const membro = membros.find(
-
-      m=>m.id === Number(membroId)
-
-    );
-
-
-
-
-
-    if(!membro){
-
-      alert("Membro não encontrado");
-      return;
-
-    }
-
-
-
-
-
 
     const {error}=await supabase
-
       .from("escala")
-
       .insert({
 
         culto_id:Number(cultoId),
 
-        membro:membro.nome,
-
-        funcao:membro.funcao,
+        membro_id:Number(membroId),
 
         confirmado:false
 
       });
-
 
 
 
@@ -250,13 +201,14 @@ export default function EscalaPage(){
 
 
 
+
     setMembroId("");
 
     carregarEscala();
 
 
-
   }
+
 
 
 
@@ -270,15 +222,12 @@ export default function EscalaPage(){
 
 
     await supabase
-
       .from("escala")
-
       .update({
 
         confirmado:!valor
 
       })
-
       .eq("id",id);
 
 
@@ -287,7 +236,6 @@ export default function EscalaPage(){
 
 
   }
-
 
 
 
@@ -300,12 +248,20 @@ export default function EscalaPage(){
   async function excluir(id:number){
 
 
+
+    const ok = confirm(
+      "Excluir esta escala?"
+    );
+
+
+    if(!ok)return;
+
+
+
+
     await supabase
-
       .from("escala")
-
       .delete()
-
       .eq("id",id);
 
 
@@ -322,7 +278,29 @@ export default function EscalaPage(){
 
 
 
-  function cultoNome(id:number){
+  function nomeMembro(id:number){
+
+
+    const m=membros.find(
+
+      x=>x.id===id
+
+    );
+
+
+    return m;
+
+
+  }
+
+
+
+
+
+
+
+
+  function nomeCulto(id:number){
 
 
     const c=cultos.find(
@@ -333,7 +311,7 @@ export default function EscalaPage(){
 
 
     return c
-      ? c.nome
+      ? `${c.nome} - ${c.data}`
       : "";
 
   }
@@ -346,6 +324,7 @@ export default function EscalaPage(){
 
 
   return(
+
 
     <div className="text-white">
 
@@ -360,30 +339,17 @@ export default function EscalaPage(){
 
 
 
-      {erro && (
 
-        <div className="bg-red-600 p-3 rounded-xl mb-5">
-
-          {erro}
-
-        </div>
-
-      )}
-
-
-
-
-
-
-
-      <div className="bg-zinc-900 p-5 rounded-xl">
+      <div className="bg-zinc-900 p-5 rounded-xl mb-8">
 
 
         <h2 className="text-xl font-bold mb-4">
 
-          ➕ Adicionar membro
+          ➕ Nova escala
 
         </h2>
+
+
 
 
 
@@ -406,7 +372,9 @@ export default function EscalaPage(){
           </option>
 
 
+
           {cultos.map(c=>(
+
 
             <option key={c.id} value={c.id}>
 
@@ -414,10 +382,14 @@ export default function EscalaPage(){
 
             </option>
 
+
           ))}
 
 
+
         </select>
+
+
 
 
 
@@ -434,16 +406,19 @@ export default function EscalaPage(){
 
         >
 
+
           <option value="">
 
-            {membros.length
-            ? "Escolha o membro"
-            : "Nenhum membro encontrado"}
+            Escolha o membro
 
           </option>
 
 
+
+
+
           {membros.map(m=>(
+
 
             <option key={m.id} value={m.id}>
 
@@ -451,7 +426,9 @@ export default function EscalaPage(){
 
             </option>
 
+
           ))}
+
 
 
         </select>
@@ -461,9 +438,10 @@ export default function EscalaPage(){
 
 
 
+
         <button
 
-          onClick={adicionar}
+          onClick={adicionarEscala}
 
           className="bg-blue-600 px-5 py-3 rounded-xl"
 
@@ -485,83 +463,108 @@ export default function EscalaPage(){
 
 
 
-      <div className="mt-6 space-y-4">
+      <div className="space-y-5">
 
 
-        {escala.map(e=>(
+
+        {escala.map(e=>{
 
 
-          <div
-
-            key={e.id}
-
-            className="bg-zinc-900 p-5 rounded-xl"
-
-          >
+          const membro = nomeMembro(e.membro_id);
 
 
-            <h2 className="text-xl font-bold">
 
-              👤 {e.membro}
-
-            </h2>
+          return(
 
 
-            <p>
+            <div
 
-              🎵 {e.funcao}
+              key={e.id}
 
-            </p>
-
-
-            <p>
-
-              ⛪ {cultoNome(e.culto_id)}
-
-            </p>
-
-
-            <button
-
-              onClick={()=>confirmar(
-                e.id,
-                e.confirmado
-              )}
-
-              className="mt-3"
+              className="bg-zinc-900 p-5 rounded-xl"
 
             >
 
-              {e.confirmado
-              ? "✅ Confirmado"
-              : "⏳ Pendente"}
 
-            </button>
+              <h2 className="text-xl font-bold">
 
+                👤 {membro?.nome}
 
-            <button
-
-              onClick={()=>excluir(e.id)}
-
-              className="block text-red-500 mt-3"
-
-            >
-
-              🗑 Excluir
-
-            </button>
+              </h2>
 
 
-          </div>
+
+              <p>
+
+                🎤 {membro?.funcao}
+
+              </p>
 
 
-        ))}
+
+
+              <p>
+
+                ⛪ {nomeCulto(e.culto_id)}
+
+              </p>
+
+
+
+
+
+
+              <button
+
+                onClick={()=>confirmar(
+                  e.id,
+                  e.confirmado
+                )}
+
+                className="mt-3"
+
+              >
+
+                {e.confirmado
+                ? "✅ Confirmado"
+                : "⏳ Aguardando"}
+
+              </button>
+
+
+
+
+
+
+              <button
+
+                onClick={()=>excluir(e.id)}
+
+                className="block text-red-500 mt-4"
+
+              >
+
+                🗑 Excluir
+
+              </button>
+
+
+
+            </div>
+
+
+          )
+
+
+        })}
+
 
 
       </div>
 
 
     </div>
+
 
   );
 
