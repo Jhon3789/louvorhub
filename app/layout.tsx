@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "LouvorHub",
-  description: "Sistema de organização do Ministério de Louvor",
+  description: "Ministério de Louvor",
+  manifest: "/manifest.webmanifest",
 };
 
 
