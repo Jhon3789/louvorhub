@@ -65,7 +65,6 @@ export default function DashboardPage(){
 
 
 
-
   async function carregarDashboard(){
 
 
@@ -136,6 +135,7 @@ export default function DashboardPage(){
 
 
 
+
       const {data:listaEscala} = await supabase
 
         .from("escala")
@@ -152,7 +152,6 @@ export default function DashboardPage(){
 
 
     }
-
 
 
 
@@ -180,6 +179,7 @@ export default function DashboardPage(){
 
 
 
+
     const {count} = await supabase
 
       .from("louvores")
@@ -200,81 +200,120 @@ export default function DashboardPage(){
 
 
 
+  return (
 
-  return(
-
-
-    <div>
+    <div className="space-y-8">
 
 
-      <h1 className="text-3xl font-bold mb-2">
+      <div>
 
-        🙏 Bem-vindo ao LouvorHub
+        <h1 className="text-4xl font-bold text-yellow-400">
 
-      </h1>
+          🎵 LouvorHub
 
-
-      <p className="text-zinc-400 mb-8">
-
-        Organização do Ministério de Louvor
-
-      </p>
+        </h1>
 
 
+        <p className="text-zinc-400 mt-2">
 
+          Organização do Ministério de Louvor
 
+        </p>
 
-
-
-      <div className="bg-zinc-900 p-6 rounded-xl mb-6">
-
-
-        <h2 className="text-2xl font-bold mb-4">
-
-          ⛪ Próximo Culto
-
-        </h2>
+      </div>
 
 
 
 
-        {culto ? (
 
-          <>
-
-            <h3 className="text-xl font-bold">
-
-              {culto.nome}
-
-            </h3>
+      <div className="grid md:grid-cols-3 gap-6">
 
 
-            <p>
-              📅 {culto.data}
-            </p>
 
-
-            <p>
-              🕒 {culto.horario}
-            </p>
-
-
-            <p>
-              📌 {culto.status}
-            </p>
-
-          </>
-
-        ) : (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
 
           <p className="text-zinc-400">
+            🎶 Louvores
+          </p>
 
-            Nenhum culto encontrado.
+
+          <h2 className="text-3xl font-bold mt-3 text-yellow-400">
+
+            {totalLouvores}
+
+          </h2>
+
+
+          <p className="text-sm text-zinc-500">
+
+            músicas cadastradas
 
           </p>
 
-        )}
 
+        </div>
+
+
+
+
+
+
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+
+
+          <p className="text-zinc-400">
+
+            ⛪ Próximo Culto
+
+          </p>
+
+
+          <h2 className="text-xl font-bold mt-3">
+
+            {culto?.nome || "Nenhum"}
+
+          </h2>
+
+
+          <p className="text-zinc-400 mt-2">
+
+            {culto?.horario}
+
+          </p>
+
+
+        </div>
+
+
+
+
+
+
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+
+
+          <p className="text-zinc-400">
+
+            👥 Escala
+
+          </p>
+
+
+          <h2 className="text-3xl font-bold mt-3 text-yellow-400">
+
+            {escala.length}
+
+          </h2>
+
+
+          <p className="text-sm text-zinc-500">
+
+            participantes
+
+          </p>
+
+
+        </div>
 
 
       </div>
@@ -290,16 +329,15 @@ export default function DashboardPage(){
 
 
 
+        <div className="bg-[#111827] border border-white/10 rounded-2xl p-6">
 
 
-        <div className="bg-zinc-900 p-5 rounded-xl">
+          <h2 className="text-xl font-bold mb-5 text-yellow-400">
 
-
-          <h2 className="text-xl font-bold mb-4">
-
-            🎵 Louvores do Culto
+            🎵 Repertório do Culto
 
           </h2>
+
 
 
 
@@ -316,22 +354,35 @@ export default function DashboardPage(){
 
 
 
+
           {louvores.map((l)=>(
 
-            <div key={l.id} className="mb-3">
 
-              🎶 {l.nome}
+            <div
 
-              <br />
+              key={l.id}
 
-              <span className="text-zinc-400">
+              className="p-3 mb-3 rounded-xl bg-white/5"
 
-                {l.artista} - Tom {l.tom}
+            >
 
-              </span>
+
+              <p className="font-bold">
+
+                🎶 {l.nome}
+
+              </p>
+
+
+              <p className="text-sm text-zinc-400">
+
+                {l.artista} • Tom {l.tom}
+
+              </p>
 
 
             </div>
+
 
           ))}
 
@@ -346,26 +397,15 @@ export default function DashboardPage(){
 
 
 
-        <div className="bg-zinc-900 p-5 rounded-xl">
+        <div className="bg-[#111827] border border-white/10 rounded-2xl p-6">
 
 
-          <h2 className="text-xl font-bold mb-4">
 
-            👥 Escala
+          <h2 className="text-xl font-bold mb-5 text-yellow-400">
+
+            👥 Equipe escalada
 
           </h2>
-
-
-
-          {escala.length === 0 && (
-
-            <p className="text-zinc-400">
-
-              Nenhuma escala encontrada.
-
-            </p>
-
-          )}
 
 
 
@@ -374,17 +414,28 @@ export default function DashboardPage(){
           {escala.map((p)=>(
 
 
-            <div key={p.id} className="mb-3">
+            <div
+
+              key={p.id}
+
+              className="p-3 mb-3 rounded-xl bg-white/5"
+
+            >
 
               👤 {p.membro}
 
-              {" - "}
+              <span className="text-zinc-400">
 
-              {p.funcao}
+                {" "}• {p.funcao}
 
-              {" "}
+              </span>
 
-              {p.confirmado ? "✅" : "⏳"}
+
+              <span className="ml-2">
+
+                {p.confirmado ? "✅" : "⏳"}
+
+              </span>
 
 
             </div>
@@ -394,11 +445,7 @@ export default function DashboardPage(){
 
 
 
-
-
         </div>
-
-
 
 
 
@@ -411,11 +458,10 @@ export default function DashboardPage(){
 
 
 
+      <div className="bg-[#111827] border border-white/10 rounded-2xl p-6">
 
-      <div className="bg-zinc-900 p-5 rounded-xl mt-6">
 
-
-        <h2 className="text-xl font-bold mb-4">
+        <h2 className="text-xl font-bold mb-5 text-yellow-400">
 
           📢 Últimos Avisos
 
@@ -426,15 +472,28 @@ export default function DashboardPage(){
 
         {avisos.map((a)=>(
 
-          <div key={a.id} className="mb-3">
 
-            <b>{a.titulo}</b>
+          <div
 
-            <p className="text-zinc-300">
+            key={a.id}
+
+            className="mb-4 p-4 rounded-xl bg-white/5"
+
+          >
+
+            <b>
+
+              {a.titulo}
+
+            </b>
+
+
+            <p className="text-zinc-300 mt-1">
 
               {a.mensagem}
 
             </p>
+
 
           </div>
 
@@ -449,27 +508,7 @@ export default function DashboardPage(){
 
 
 
-
-
-
-      <div className="mt-6 bg-zinc-900 p-5 rounded-xl">
-
-        🎵 Total de louvores cadastrados:
-
-        <span className="font-bold ml-2">
-
-          {totalLouvores}
-
-        </span>
-
-      </div>
-
-
-
-
-
     </div>
-
 
   );
 
