@@ -192,7 +192,7 @@ export default function SistemaLayout({
 
           >
 
-            🏠 Dashboard
+            ✝️ Início
 
           </Link>
 
@@ -210,7 +210,7 @@ export default function SistemaLayout({
 
           >
 
-            🎵 Louvores
+            🎶 Louvores
 
           </Link>
 
@@ -264,8 +264,7 @@ export default function SistemaLayout({
 
           >
 
-            📢 Avisos
-
+            📜 Avisos
           </Link>
 
 
