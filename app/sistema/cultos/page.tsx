@@ -42,7 +42,7 @@ export default function CultosPage(){
   async function carregarCultos(){
 
 
-    const {data,error} = await supabase
+    const {data,error}= await supabase
 
       .from("cultos")
 
@@ -54,15 +54,13 @@ export default function CultosPage(){
 
     if(error){
 
-      console.log(error);
+      alert(error.message);
       return;
 
     }
 
 
-
     setCultos(data || []);
-
 
   }
 
@@ -87,18 +85,15 @@ export default function CultosPage(){
 
 
 
-    const {error} = await supabase
+    const {error}= await supabase
 
       .from("cultos")
 
       .insert({
 
         nome,
-
         data,
-
         horario,
-
         status
 
       });
@@ -135,6 +130,8 @@ export default function CultosPage(){
 
 
 
+
+
   async function excluirCulto(id:number){
 
 
@@ -144,34 +141,24 @@ export default function CultosPage(){
     );
 
 
-
     if(!confirmar) return;
 
 
 
 
 
-
     await supabase
-
       .from("culto_louvores")
-
       .delete()
-
       .eq("culto_id",id);
-
-
 
 
 
 
 
     await supabase
-
       .from("escala")
-
       .delete()
-
       .eq("culto_id",id);
 
 
@@ -179,14 +166,14 @@ export default function CultosPage(){
 
 
 
-
-    const {error} = await supabase
+    const {error}= await supabase
 
       .from("cultos")
 
       .delete()
 
       .eq("id",id);
+
 
 
 
@@ -202,8 +189,23 @@ export default function CultosPage(){
 
 
 
+
     carregarCultos();
 
+
+  }
+
+
+
+
+
+
+
+  function formatarData(data:string){
+
+    const partes=data.split("-");
+
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
 
   }
 
@@ -229,8 +231,6 @@ export default function CultosPage(){
 
 
 
-
-
       <div className="bg-zinc-900 p-5 rounded-xl mb-8">
 
 
@@ -239,7 +239,6 @@ export default function CultosPage(){
           ➕ Novo Culto
 
         </h2>
-
 
 
 
@@ -276,25 +275,19 @@ export default function CultosPage(){
 
 
 
-<div className="mb-3">
 
-  <label className="block text-sm text-zinc-400 mb-2">
-    🕒 Horário do culto
-  </label>
 
-  <input
+        <input
 
-    type="time"
+          type="time"
 
-    className="w-full bg-zinc-800 p-3 rounded"
+          className="w-full bg-zinc-800 p-3 rounded mb-3"
 
-    value={horario}
+          value={horario}
 
-    onChange={(e)=>setHorario(e.target.value)}
+          onChange={(e)=>setHorario(e.target.value)}
 
-  />
-
-</div>
+        />
 
 
 
@@ -312,15 +305,12 @@ export default function CultosPage(){
         >
 
           <option>Agendado</option>
-
           <option>Confirmado</option>
-
           <option>Realizado</option>
-
           <option>Cancelado</option>
 
-
         </select>
+
 
 
 
@@ -331,7 +321,7 @@ export default function CultosPage(){
 
           onClick={cadastrarCulto}
 
-          className="bg-blue-600 px-5 py-3 rounded"
+          className="bg-blue-600 px-5 py-3 rounded-xl"
 
         >
 
@@ -377,9 +367,13 @@ export default function CultosPage(){
 
 
 
+
+
             <p>
-              📅 {culto.data}
+              📅 {formatarData(culto.data)}
             </p>
+
+
 
 
             <p>
@@ -387,9 +381,12 @@ export default function CultosPage(){
             </p>
 
 
+
+
             <p>
               📌 {culto.status}
             </p>
+
 
 
 
@@ -417,8 +414,6 @@ export default function CultosPage(){
 
 
 
-
-
           </div>
 
 
@@ -428,7 +423,6 @@ export default function CultosPage(){
 
 
       </div>
-
 
 
 
@@ -448,12 +442,12 @@ export default function CultosPage(){
 
 
 
+
 function CultoDetalhes({cultoId}:{cultoId:number}){
 
 
-  const [louvores,setLouvores] = useState<any[]>([]);
-  const [escala,setEscala] = useState<any[]>([]);
-
+  const [louvores,setLouvores]=useState<any[]>([]);
+  const [escala,setEscala]=useState<any[]>([]);
 
 
 
@@ -463,7 +457,7 @@ function CultoDetalhes({cultoId}:{cultoId:number}){
 
     carregarDetalhes();
 
-  },[]);
+  },[cultoId]);
 
 
 
@@ -475,9 +469,7 @@ function CultoDetalhes({cultoId}:{cultoId:number}){
 
 
 
-
-
-    const {data:ligacoes} = await supabase
+    const {data:ligacoes}= await supabase
 
       .from("culto_louvores")
 
@@ -494,24 +486,27 @@ function CultoDetalhes({cultoId}:{cultoId:number}){
 
 
 
-      const ids = ligacoes.map((item:any)=>item.louvor_id);
+      const ids=ligacoes.map(
+        (item:any)=>item.louvor_id
+      );
 
 
 
 
-      const {data} = await supabase
+      const {data}= await supabase
 
         .from("louvores")
 
         .select("*")
 
-        .in("id",ids);
+        .in("id",ids)
+
+        .order("nome");
 
 
 
 
       setLouvores(data || []);
-
 
 
     }
@@ -521,8 +516,7 @@ function CultoDetalhes({cultoId}:{cultoId:number}){
 
 
 
-
-    const {data:listaEscala} = await supabase
+    const {data:listaEscala}= await supabase
 
       .from("escala")
 
@@ -533,13 +527,12 @@ function CultoDetalhes({cultoId}:{cultoId:number}){
 
 
 
-
     setEscala(listaEscala || []);
 
 
 
-
   }
+
 
 
 
@@ -553,7 +546,6 @@ function CultoDetalhes({cultoId}:{cultoId:number}){
     <div className="mt-5">
 
 
-
       <h3 className="text-xl font-bold">
 
         🎵 Louvores
@@ -563,7 +555,7 @@ function CultoDetalhes({cultoId}:{cultoId:number}){
 
 
 
-      {louvores.length === 0 && (
+      {louvores.length===0 && (
 
         <p className="text-zinc-400">
 
@@ -572,6 +564,8 @@ function CultoDetalhes({cultoId}:{cultoId:number}){
         </p>
 
       )}
+
+
 
 
 
@@ -607,7 +601,7 @@ function CultoDetalhes({cultoId}:{cultoId:number}){
 
 
 
-      {escala.length === 0 && (
+      {escala.length===0 && (
 
         <p className="text-zinc-400">
 
@@ -616,6 +610,7 @@ function CultoDetalhes({cultoId}:{cultoId:number}){
         </p>
 
       )}
+
 
 
 
@@ -634,8 +629,6 @@ function CultoDetalhes({cultoId}:{cultoId:number}){
 
 
       ))}
-
-
 
 
 
