@@ -1,15 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../../../lib/supabase";
-
-
-type Membro = {
-  id:number;
-  nome:string;
-  funcao:string;
-  status:string;
-};
+import { supabase } from "@/lib/supabase";
 
 
 type Culto = {
@@ -23,11 +15,9 @@ type Culto = {
 type Escala = {
   id:number;
   culto_id:number;
-  membro_id:number;
+  membro:string;
   funcao:string;
   confirmado:boolean;
-  membros:Membro;
-  cultos:Culto;
 };
 
 
@@ -35,228 +25,191 @@ type Escala = {
 export default function EscalaPage(){
 
 
-const [membros,setMembros]=useState<Membro[]>([]);
-const [cultos,setCultos]=useState<Culto[]>([]);
-const [escala,setEscala]=useState<Escala[]>([]);
+  const [cultos,setCultos] = useState<Culto[]>([]);
+  const [escala,setEscala] = useState<Escala[]>([]);
 
 
+  const [cultoId,setCultoId] = useState("");
+  const [membro,setMembro] = useState("");
+  const [funcao,setFuncao] = useState("Vocal");
 
-const [nome,setNome]=useState("");
-const [funcao,setFuncao]=useState("");
 
-const [cultoId,setCultoId]=useState("");
-const [membroId,setMembroId]=useState("");
 
 
 
 
-useEffect(()=>{
+  useEffect(()=>{
 
-carregarMembros();
-carregarCultos();
-carregarEscala();
+    carregarCultos();
+    carregarEscala();
 
-},[]);
+  },[]);
 
 
 
 
 
 
-async function carregarMembros(){
 
+  async function carregarCultos(){
 
-const {data}=await supabase
-.from("membros")
-.select("*")
-.order("nome");
 
+    const {data,error}= await supabase
 
-setMembros(data || []);
+      .from("cultos")
+      .select("*")
+      .order("data",{ascending:true});
 
-}
 
 
+    if(error){
 
+      alert(error.message);
+      return;
 
+    }
 
 
-async function carregarCultos(){
+    setCultos(data || []);
 
 
-const {data}=await supabase
-.from("cultos")
-.select("*")
-.order("id");
+  }
 
 
-setCultos(data || []);
 
-}
 
 
 
 
 
 
+  async function carregarEscala(){
 
-async function carregarEscala(){
 
+    const {data,error}= await supabase
 
-const {data,error}=await supabase
-.from("escala")
-.select(`
-*,
-membros(*),
-cultos(*)
-`)
-.order("id");
+      .from("escala")
+      .select("*")
+      .order("id",{ascending:false});
 
 
 
-if(error){
+    if(error){
 
-console.log(error);
-return;
+      alert(error.message);
+      return;
 
-}
+    }
 
 
 
-setEscala(data || []);
+    setEscala(data || []);
 
 
-}
+  }
 
 
 
 
 
 
-async function criarMembro(){
 
 
-if(!nome || !funcao){
 
-return;
+  async function adicionarEscala(){
 
-}
 
 
+    if(!cultoId || !membro){
 
-const {error}=await supabase
-.from("membros")
-.insert({
+      alert("Preencha todos os campos");
+      return;
 
-nome,
-funcao,
-status:"ativo"
+    }
 
-});
 
 
 
-if(error){
 
-alert(error.message);
-return;
 
-}
+    const {error}= await supabase
 
+      .from("escala")
 
+      .insert({
 
-setNome("");
-setFuncao("");
+        culto_id:Number(cultoId),
 
-carregarMembros();
+        membro,
 
+        funcao,
 
-}
+        confirmado:false
 
-async function adicionarEscala(){
+      });
 
 
-if(!cultoId || !membroId){
 
-return;
 
-}
 
 
+    if(error){
 
-const membro =
-membros.find(
-(m)=>m.id === Number(membroId)
-);
+      alert(error.message);
+      return;
 
+    }
 
 
 
-const {error}=await supabase
-.from("escala")
-.insert({
 
-culto_id:Number(cultoId),
-membro_id:Number(membroId),
-funcao:membro?.funcao || "",
-confirmado:false
 
-});
+    setMembro("");
+    setFuncao("Vocal");
 
 
+    carregarEscala();
 
-if(error){
 
-alert(error.message);
-return;
 
-}
+  }
 
 
 
-carregarEscala();
 
 
-}
 
 
 
 
 
+  async function confirmar(id:number,valor:boolean){
 
 
 
-async function confirmar(
-id:number,
-valor:boolean
-){
+    await supabase
 
+      .from("escala")
 
+      .update({
 
-const {error}=await supabase
-.from("escala")
-.update({
+        confirmado:!valor
 
-confirmado:!valor
+      })
 
-})
-.eq("id",id);
+      .eq("id",id);
 
 
 
-if(error){
 
-alert(error.message);
-return;
+    carregarEscala();
 
-}
 
+  }
 
 
-carregarEscala();
 
 
-}
 
 
 
@@ -264,45 +217,39 @@ carregarEscala();
 
 
 
+  async function excluir(id:number){
 
-async function removerEscala(id:number){
 
 
+    const confirmar = confirm(
+      "Deseja excluir este membro da escala?"
+    );
 
-const confirmarRemover = window.confirm(
-"Remover este integrante da escala?"
-);
 
 
+    if(!confirmar)return;
 
-if(!confirmarRemover){
 
-return;
 
-}
 
 
+    await supabase
 
-const {error}=await supabase
-.from("escala")
-.delete()
-.eq("id",id);
+      .from("escala")
 
+      .delete()
 
+      .eq("id",id);
 
-if(error){
 
-alert(error.message);
-return;
 
-}
+    carregarEscala();
 
 
 
-carregarEscala();
+  }
 
 
-}
 
 
 
@@ -311,111 +258,96 @@ carregarEscala();
 
 
 
+  function nomeCulto(id:number){
 
-return (
 
-<div className="p-6 text-white">
+    const culto = cultos.find(
+      (c)=>c.id===id
+    );
 
 
-<h1 className="text-3xl font-bold mb-6">
-👥 Escala do Ministério
-</h1>
+    if(!culto)return "";
 
 
+    return `${culto.nome} - ${culto.data}`;
 
 
+  }
 
 
 
-<div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
 
-<h2 className="font-bold mb-3">
-Cadastrar membro
-</h2>
 
 
 
-<input
-className="w-full p-3 bg-zinc-800 rounded mb-3"
-placeholder="Nome"
-value={nome}
-onChange={(e)=>setNome(e.target.value)}
-/>
 
 
+  return(
 
 
-<input
-className="w-full p-3 bg-zinc-800 rounded mb-3"
-placeholder="Função (Vocal, Violão...)"
-value={funcao}
-onChange={(e)=>setFuncao(e.target.value)}
-/>
+    <div className="text-white">
 
 
+      <h1 className="text-3xl font-bold mb-6">
 
+        👥 Escala
 
-<button
-onClick={criarMembro}
-className="bg-blue-600 px-5 py-3 rounded"
->
+      </h1>
 
-Adicionar membro
 
-</button>
 
 
-</div>
 
 
 
+      <div className="bg-zinc-900 p-5 rounded-xl mb-8">
 
 
+        <h2 className="text-xl font-bold mb-4">
 
+          ➕ Nova escala
 
+        </h2>
 
 
-<div className="bg-zinc-900 p-5 rounded-xl mb-6">
 
 
-<h2 className="font-bold mb-3">
-Criar escala
-</h2>
 
 
+        <select
 
+          className="w-full bg-zinc-800 p-3 rounded mb-3"
 
+          value={cultoId}
 
+          onChange={(e)=>setCultoId(e.target.value)}
 
-<select
-className="w-full p-3 bg-zinc-800 rounded mb-3"
-onChange={(e)=>setCultoId(e.target.value)}
->
+        >
 
-<option>
-Escolha o culto
-</option>
+          <option value="">
 
+            Escolha o culto
 
-{cultos.map(c=>(
+          </option>
 
 
-<option
-key={c.id}
-value={c.id}
->
 
-{c.nome} - {c.data}
+          {cultos.map((c)=>(
 
-</option>
+            <option
+              key={c.id}
+              value={c.id}
+            >
 
+              {c.nome} - {c.data}
 
-))}
+            </option>
 
+          ))}
 
-</select>
 
+        </select>
 
 
 
@@ -423,136 +355,180 @@ value={c.id}
 
 
 
-<select
-className="w-full p-3 bg-zinc-800 rounded mb-3"
-onChange={(e)=>setMembroId(e.target.value)}
->
+        <input
 
-<option>
-Escolha o membro
-</option>
+          className="w-full bg-zinc-800 p-3 rounded mb-3"
 
+          placeholder="Nome do membro"
 
+          value={membro}
 
-{membros.map(m=>(
+          onChange={(e)=>setMembro(e.target.value)}
 
+        />
 
-<option
-key={m.id}
-value={m.id}
->
 
-{m.nome} - {m.funcao}
 
-</option>
 
 
-))}
 
 
-</select>
 
+        <select
 
+          className="w-full bg-zinc-800 p-3 rounded mb-3"
 
+          value={funcao}
 
+          onChange={(e)=>setFuncao(e.target.value)}
 
+        >
 
+          <option>Vocal</option>
+          <option>Violão</option>
+          <option>Teclado</option>
+          <option>Bateria</option>
+          <option>Baixo</option>
+          <option>Sonoplastia</option>
 
-<button
-onClick={adicionarEscala}
-className="bg-green-600 px-5 py-3 rounded"
->
 
-Adicionar na escala
+        </select>
 
-</button>
 
 
 
-</div>
 
 
+        <button
 
+          onClick={adicionarEscala}
 
+          className="bg-blue-600 px-5 py-3 rounded-xl"
 
+        >
 
+          Cadastrar escala
 
+        </button>
 
 
-<div className="space-y-4">
 
 
-{escala.map((e)=>(
+      </div>
 
 
 
-<div
-key={e.id}
-className="bg-zinc-900 p-5 rounded-xl"
->
 
 
 
-<h2 className="font-bold text-xl">
-{e.membros?.nome}
-</h2>
 
 
+      <div className="space-y-5">
 
-<p>
-🎤 {e.funcao}
-</p>
 
 
+        {escala.map((p)=>(
 
-<p>
-⛪ {e.cultos?.nome}
-</p>
 
 
+          <div
 
+            key={p.id}
 
+            className="bg-zinc-900 p-5 rounded-xl"
 
-<button
-onClick={()=>confirmar(e.id,e.confirmado)}
-className="bg-blue-600 px-4 py-2 rounded mt-3"
->
+          >
 
-{e.confirmado
-? "✅ Confirmado"
-: "Confirmar presença"}
 
-</button>
 
 
+            <h2 className="text-xl font-bold">
 
+              👤 {p.membro}
 
+            </h2>
 
-<button
-onClick={()=>removerEscala(e.id)}
-className="bg-red-600 px-4 py-2 rounded mt-3 ml-3"
->
 
-❌ Remover
 
-</button>
 
 
+            <p>
 
-</div>
+              🎯 {p.funcao}
 
+            </p>
 
-))}
 
 
 
-</div>
 
+            <p>
 
+              ⛪ {nomeCulto(p.culto_id)}
 
-</div>
+            </p>
 
-);
+
+
+
+
+
+            <button
+
+              onClick={()=>confirmar(
+                p.id,
+                p.confirmado
+              )}
+
+              className="mt-3"
+
+            >
+
+              {p.confirmado
+                ? "✅ Confirmado"
+                : "⏳ Aguardando confirmação"}
+
+            </button>
+
+
+
+
+
+
+
+            <button
+
+              onClick={()=>excluir(p.id)}
+
+              className="block text-red-500 mt-4"
+
+            >
+
+              🗑 Excluir
+
+            </button>
+
+
+
+
+          </div>
+
+
+
+        ))}
+
+
+
+      </div>
+
+
+
+
+
+    </div>
+
+
+  );
 
 
 }
