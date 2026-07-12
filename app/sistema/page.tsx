@@ -4,23 +4,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 
-type Culto = {
-  id:number;
-  nome:string;
-  data:string;
-  horario:string;
-  status:string;
-};
-
-
-type Louvor = {
-  id:number;
-  nome:string;
-  artista:string;
-  tom:string;
-};
-
-
 type Escala = {
   id:number;
   membro:string;
@@ -29,488 +12,258 @@ type Escala = {
 };
 
 
-type Aviso = {
-  id:number;
-  titulo:string;
-  mensagem:string;
-};
-
-
-
 export default function DashboardPage(){
 
 
-  const [culto,setCulto] = useState<Culto | null>(null);
+const [escala,setEscala] = useState<Escala[]>([]);
+const [culto,setCulto] = useState<any>(null);
+const [totalLouvores,setTotalLouvores] = useState(0);
 
-  const [louvores,setLouvores] = useState<Louvor[]>([]);
 
-  const [escala,setEscala] = useState<Escala[]>([]);
 
-  const [avisos,setAvisos] = useState<Aviso[]>([]);
+useEffect(()=>{
 
-  const [totalLouvores,setTotalLouvores] = useState(0);
+carregar();
 
+},[]);
 
 
 
+async function carregar(){
 
-  useEffect(()=>{
 
-    carregarDashboard();
+const {data:cultoAtual}= await supabase
 
-  },[]);
+.from("cultos")
 
+.select("*")
 
+.order("data",{ascending:true})
 
+.limit(1)
 
+.single();
 
 
-  async function carregarDashboard(){
 
+setCulto(cultoAtual);
 
 
-    const {data:proximoCulto} = await supabase
 
-      .from("cultos")
 
-      .select("*")
 
-      .order("data",{ascending:true})
+const {count}= await supabase
 
-      .limit(1)
+.from("louvores")
 
-      .single();
+.select("*",{count:"exact",head:true});
 
 
+setTotalLouvores(count || 0);
 
 
 
-    if(proximoCulto){
 
 
-      setCulto(proximoCulto);
 
+if(cultoAtual){
 
 
+const {data}= await supabase
 
+.from("escala")
 
-      const {data:ligacoes} = await supabase
+.select(`
+id,
+confirmado,
+membros(
+nome,
+funcao
+)
+`)
 
-        .from("culto_louvores")
+.eq("culto_id",cultoAtual.id);
 
-        .select("louvor_id")
 
-        .eq("culto_id",proximoCulto.id);
 
 
 
+const lista = (data || []).map((item:any)=>({
 
 
-      if(ligacoes && ligacoes.length > 0){
+id:item.id,
 
+membro:item.membros?.nome || "Sem nome",
 
-        const ids = ligacoes.map((item:any)=>item.louvor_id);
+funcao:item.membros?.funcao || "Sem função",
 
+confirmado:item.confirmado
 
 
+}));
 
-        const {data:listaLouvores} = await supabase
 
-          .from("louvores")
 
-          .select("*")
+setEscala(lista);
 
-          .in("id",ids);
 
+}
 
 
 
-        setLouvores(listaLouvores || []);
+}
 
 
-      }
 
+return (
 
+<div className="space-y-6">
 
 
+<h1 className="text-4xl font-bold text-yellow-400">
 
+🎵 LouvorHub
 
+</h1>
 
-      const {data:listaEscala} = await supabase
 
-        .from("escala")
+<p className="text-zinc-400">
 
-        .select("*")
+Ministério de Louvor
 
-        .eq("culto_id",proximoCulto.id);
+</p>
 
 
 
 
-      setEscala(listaEscala || []);
 
+<div className="grid md:grid-cols-3 gap-5">
 
 
-    }
+<div className="bg-white/5 p-5 rounded-xl">
 
+<p>🎶 Louvores</p>
 
+<h2 className="text-3xl font-bold text-yellow-400">
 
+{totalLouvores}
 
+</h2>
 
+</div>
 
 
-    const {data:listaAvisos} = await supabase
 
-      .from("avisos")
 
-      .select("*")
 
-      .order("id",{ascending:false})
+<div className="bg-white/5 p-5 rounded-xl">
 
-      .limit(3);
+<p>⛪ Próximo Culto</p>
 
+<h2 className="font-bold">
 
+{culto?.nome || "Nenhum"}
 
-    setAvisos(listaAvisos || []);
+</h2>
 
+<p>
 
+{culto?.horario}
 
+</p>
 
+</div>
 
 
 
 
-    const {count} = await supabase
 
-      .from("louvores")
 
-      .select("*",{count:"exact",head:true});
+<div className="bg-white/5 p-5 rounded-xl">
 
+<p>👥 Escala</p>
 
+<h2 className="text-3xl font-bold text-yellow-400">
 
-    setTotalLouvores(count || 0);
+{escala.length}
 
+</h2>
 
+</div>
 
-  }
 
 
+</div>
 
 
 
 
 
-  return (
 
-    <div className="space-y-8">
 
+<div className="bg-[#111827] p-6 rounded-xl">
 
-      <div>
 
-        <h1 className="text-4xl font-bold text-yellow-400">
+<h2 className="text-xl text-yellow-400 font-bold mb-4">
 
-          🎵 LouvorHub
+👥 Equipe escalada
 
-        </h1>
+</h2>
 
 
-        <p className="text-zinc-400 mt-2">
 
-          Organização do Ministério de Louvor
+{escala.length === 0 && (
 
-        </p>
+<p className="text-zinc-400">
 
-      </div>
+Nenhuma pessoa escalada
 
+</p>
 
+)}
 
 
 
-      <div className="grid md:grid-cols-3 gap-6">
+{escala.map((p)=>(
 
 
+<div 
+key={p.id}
+className="bg-white/5 p-3 rounded-lg mb-3"
+>
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
 
-          <p className="text-zinc-400">
-            🎶 Louvores
-          </p>
+👤 <b>{p.membro}</b>
 
+<span className="text-zinc-400">
 
-          <h2 className="text-3xl font-bold mt-3 text-yellow-400">
+{" "}• {p.funcao}
 
-            {totalLouvores}
+</span>
 
-          </h2>
 
+<span className="ml-3">
 
-          <p className="text-sm text-zinc-500">
+{p.confirmado ? "✅" : "⏳"}
 
-            músicas cadastradas
+</span>
 
-          </p>
 
+</div>
 
-        </div>
 
+))}
 
 
 
+</div>
 
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
 
 
-          <p className="text-zinc-400">
+</div>
 
-            ⛪ Próximo Culto
-
-          </p>
-
-
-          <h2 className="text-xl font-bold mt-3">
-
-            {culto?.nome || "Nenhum"}
-
-          </h2>
-
-
-          <p className="text-zinc-400 mt-2">
-
-            {culto?.horario}
-
-          </p>
-
-
-        </div>
-
-
-
-
-
-
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-
-
-          <p className="text-zinc-400">
-
-            👥 Escala
-
-          </p>
-
-
-          <h2 className="text-3xl font-bold mt-3 text-yellow-400">
-
-            {escala.length}
-
-          </h2>
-
-
-          <p className="text-sm text-zinc-500">
-
-            participantes
-
-          </p>
-
-
-        </div>
-
-
-      </div>
-
-
-
-
-
-
-
-
-      <div className="grid md:grid-cols-2 gap-6">
-
-
-
-        <div className="bg-[#111827] border border-white/10 rounded-2xl p-6">
-
-
-          <h2 className="text-xl font-bold mb-5 text-yellow-400">
-
-            🎵 Repertório do Culto
-
-          </h2>
-
-
-
-
-          {louvores.length === 0 && (
-
-            <p className="text-zinc-400">
-
-              Nenhum louvor selecionado.
-
-            </p>
-
-          )}
-
-
-
-
-
-          {louvores.map((l)=>(
-
-
-            <div
-
-              key={l.id}
-
-              className="p-3 mb-3 rounded-xl bg-white/5"
-
-            >
-
-
-              <p className="font-bold">
-
-                🎶 {l.nome}
-
-              </p>
-
-
-              <p className="text-sm text-zinc-400">
-
-                {l.artista} • Tom {l.tom}
-
-              </p>
-
-
-            </div>
-
-
-          ))}
-
-
-
-        </div>
-
-
-
-
-
-
-
-
-        <div className="bg-[#111827] border border-white/10 rounded-2xl p-6">
-
-
-
-          <h2 className="text-xl font-bold mb-5 text-yellow-400">
-
-            👥 Equipe escalada
-
-          </h2>
-
-
-
-
-
-          {escala.map((p)=>(
-
-
-            <div
-
-              key={p.id}
-
-              className="p-3 mb-3 rounded-xl bg-white/5"
-
-            >
-
-              👤 {p.membro}
-
-              <span className="text-zinc-400">
-
-                {" "}• {p.funcao}
-
-              </span>
-
-
-              <span className="ml-2">
-
-                {p.confirmado ? "✅" : "⏳"}
-
-              </span>
-
-
-            </div>
-
-
-          ))}
-
-
-
-        </div>
-
-
-
-      </div>
-
-
-
-
-
-
-
-
-      <div className="bg-[#111827] border border-white/10 rounded-2xl p-6">
-
-
-        <h2 className="text-xl font-bold mb-5 text-yellow-400">
-
-          📢 Últimos Avisos
-
-        </h2>
-
-
-
-
-        {avisos.map((a)=>(
-
-
-          <div
-
-            key={a.id}
-
-            className="mb-4 p-4 rounded-xl bg-white/5"
-
-          >
-
-            <b>
-
-              {a.titulo}
-
-            </b>
-
-
-            <p className="text-zinc-300 mt-1">
-
-              {a.mensagem}
-
-            </p>
-
-
-          </div>
-
-
-        ))}
-
-
-
-      </div>
-
-
-
-
-
-    </div>
-
-  );
+);
 
 
 }

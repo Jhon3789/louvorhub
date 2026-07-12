@@ -5,7 +5,6 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "LouvorHub",
   description: "Ministério de Louvor",
-  manifest: "/manifest.webmanifest",
 };
 
 
@@ -22,8 +21,6 @@ export default function RootLayout({
       <body>
 
         {children}
-
-        <script src="/register-sw.js" />
 
       </body>
 
