@@ -1,15 +1,7 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import Sidebar from "../components/components/Sidebar";
 
 
-export const metadata: Metadata = {
-  title: "LouvorHub",
-  description: "Ministério de Louvor",
-  manifest: "/manifest.webmanifest",
-};
-
-
-export default function RootLayout({
+export default function SistemaLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -17,17 +9,18 @@ export default function RootLayout({
 
   return (
 
-    <html lang="pt-BR">
+    <div className="flex min-h-screen bg-black">
 
-      <body>
+      <Sidebar />
+
+      <main className="flex-1 p-6 text-white">
 
         {children}
 
-        <script src="/register-sw.js" />
+      </main>
 
-      </body>
-
-    </html>
+    </div>
 
   );
+
 }
